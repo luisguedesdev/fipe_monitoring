@@ -1,15 +1,18 @@
-# Utiliza uma imagem Node.js leve
-FROM node:14-alpine
+# Imagem base do Node.js (versão 18-slim)
+FROM node:18-slim
 
-# Define o diretório de trabalho dentro do container
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copia o package.json e instala as dependências
-COPY package.json .
+# Copia os arquivos de dependências e instala as dependências
+COPY package*.json ./
 RUN npm install
 
-# Copia o restante dos arquivos do projeto
+# Copia o restante dos arquivos do projeto (incluindo front end e back end)
 COPY . .
 
-# Comando para iniciar o aplicativo
+# Cria a pasta para persistência do SQLite
+RUN mkdir -p data
+
+EXPOSE 3000
+
 CMD ["npm", "start"]

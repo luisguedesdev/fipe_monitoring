@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Consulta FIPE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <h1>Consulta FIPE</h1>
+  <form id="consultaForm">
+    <div>
+      <label for="marca">Marca:</label>
+      <select id="marca" name="marca">
+        <option value="">Selecione a marca</option>
+      </select>
+    </div>
+    <div>
+      <label for="modelo">Modelo:</label>
+      <select id="modelo" name="modelo" disabled>
+        <option value="">Selecione o modelo</option>
+      </select>
+    </div>
+    <div>
+      <label for="ano">Ano Modelo:</label>
+      <select id="ano" name="ano" disabled>
+        <option value="">Selecione o ano</option>
+      </select>
+    </div>
+    <div>
+      <button type="submit">Consultar Histórico</button>
+    </div>
+  </form>
+
+  <div id="resultado">
+    <!-- Os resultados aparecerão aqui -->
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
