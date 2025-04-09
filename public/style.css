@@ -14,11 +14,15 @@ form div {
 
 label {
   display: inline-block;
-  width: 120px;
+  width: 130px;
 }
 
-select,
+input,
 button {
   padding: 5px;
   font-size: 1rem;
+}
+
+input[disabled] {
+  background-color: #f0f0f0;
 }

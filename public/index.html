@@ -11,22 +11,22 @@
   <h1>Consulta FIPE</h1>
   <form id="consultaForm">
     <div>
-      <label for="marca">Marca:</label>
-      <select id="marca" name="marca">
-        <option value="">Selecione a marca</option>
-      </select>
+      <label for="marcaInput">Marca:</label>
+      <input type="text" id="marcaInput" name="marca" list="marcasList" autocomplete="off"
+        placeholder="Selecione ou digite a marca">
+      <datalist id="marcasList"></datalist>
     </div>
     <div>
-      <label for="modelo">Modelo:</label>
-      <select id="modelo" name="modelo" disabled>
-        <option value="">Selecione o modelo</option>
-      </select>
+      <label for="modeloInput">Modelo:</label>
+      <input type="text" id="modeloInput" name="modelo" list="modelosList" autocomplete="off"
+        placeholder="Selecione ou digite o modelo" disabled>
+      <datalist id="modelosList"></datalist>
     </div>
     <div>
-      <label for="ano">Ano Modelo:</label>
-      <select id="ano" name="ano" disabled>
-        <option value="">Selecione o ano</option>
-      </select>
+      <label for="anoInput">Ano Modelo:</label>
+      <input type="text" id="anoInput" name="ano" list="anosList" autocomplete="off"
+        placeholder="Selecione ou digite o ano" disabled>
+      <datalist id="anosList"></datalist>
     </div>
     <div>
       <button type="submit">Consultar Histórico</button>
@@ -34,7 +34,7 @@
   </form>
 
   <div id="resultado">
-    <!-- Os resultados aparecerão aqui -->
+    <!-- O histórico será exibido aqui -->
   </div>
 
   <script src="app.js"></script>

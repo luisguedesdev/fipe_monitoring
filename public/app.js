@@ -1,109 +1,163 @@
-// Carrega as marcas ao iniciar a página
+// Mapas globais para armazenar os códigos correspondentes aos rótulos
+let marcasMap = {};
+let modelosMap = {};
+let anosMap = {};
+
+// Carrega as marcas e popula o datalist "marcasList"
 async function carregarMarcas() {
   try {
     const response = await fetch("/api/marcas");
     const data = await response.json();
-    const selectMarca = document.getElementById("marca");
-    // Limpa e popula o select de marcas
-    selectMarca.innerHTML = '<option value="">Selecione a marca</option>';
-    data.marcas.forEach((item) => {
-      const option = document.createElement("option");
-      option.value = item.Value || item.Codigo;
-      option.text = item.Label || item.Nome || item.Descricao;
-      selectMarca.appendChild(option);
-    });
+    const datalist = document.getElementById("marcasList");
+    datalist.innerHTML = "";
+    // Aceita ambas as chaves "marcas" ou "Marcas"
+    const marcas = data.marcas || data.Marcas;
+    if (marcas && Array.isArray(marcas)) {
+      marcasMap = {}; // Reinicia o mapa
+      marcas.forEach((item) => {
+        const label = item.Label || item.Nome || item.Descricao;
+        const code = item.Value || item.Codigo;
+        marcasMap[label.toLowerCase()] = code;
+        const option = document.createElement("option");
+        option.value = label;
+        datalist.appendChild(option);
+      });
+    } else {
+      console.error("Nenhuma marca encontrada:", data);
+    }
   } catch (error) {
     console.error("Erro ao carregar marcas:", error);
   }
 }
 
-// Carrega os modelos com base na marca selecionada
-async function carregarModelos(marca) {
+// Carrega os modelos com base no código da marca selecionada e popula o datalist "modelosList"
+async function carregarModelos(marcaCode) {
   try {
-    const response = await fetch(`/api/modelos?marca=${marca}`);
+    const response = await fetch(`/api/modelos?marca=${marcaCode}`);
     const data = await response.json();
-    const selectModelo = document.getElementById("modelo");
-    selectModelo.innerHTML = '<option value="">Selecione o modelo</option>';
-    if (data.modelos && Array.isArray(data.modelos)) {
-      data.modelos.forEach((item) => {
+    const datalist = document.getElementById("modelosList");
+    datalist.innerHTML = "";
+    // O endpoint pode retornar { Modelos: [...] } ou apenas um array
+    let modelos = [];
+    if (data.modelos) {
+      if (Array.isArray(data.modelos)) {
+        modelos = data.modelos;
+      } else if (data.modelos.Modelos && Array.isArray(data.modelos.Modelos)) {
+        modelos = data.modelos.Modelos;
+      }
+    } else if (data.Modelos && Array.isArray(data.Modelos)) {
+      modelos = data.Modelos;
+    }
+    if (modelos.length > 0) {
+      modelosMap = {};
+      modelos.forEach((item) => {
+        const label = item.Label || item.Nome || item.Descricao;
+        const code = item.Value || item.Codigo;
+        modelosMap[label.toLowerCase()] = code;
         const option = document.createElement("option");
-        option.value = item.Value || item.Codigo;
-        option.text = item.Label || item.Nome || item.Descricao;
-        selectModelo.appendChild(option);
+        option.value = label;
+        datalist.appendChild(option);
       });
-      selectModelo.disabled = false;
+      document.getElementById("modeloInput").disabled = false;
     } else {
-      selectModelo.disabled = true;
+      document.getElementById("modeloInput").disabled = true;
     }
   } catch (error) {
     console.error("Erro ao carregar modelos:", error);
   }
 }
 
-// Carrega os anos disponíveis para o modelo selecionado
-async function carregarAnos(marca, modelo) {
+// Carrega os anos disponíveis com base no código da marca e modelo e popula o datalist "anosList"
+async function carregarAnos(marcaCode, modeloCode) {
   try {
-    const response = await fetch(`/api/anos?marca=${marca}&modelo=${modelo}`);
+    const response = await fetch(
+      `/api/anos?marca=${marcaCode}&modelo=${modeloCode}`
+    );
     const data = await response.json();
-    const selectAno = document.getElementById("ano");
-    selectAno.innerHTML = '<option value="">Selecione o ano</option>';
-    if (data.anos && Array.isArray(data.anos)) {
-      data.anos.forEach((item) => {
+    const datalist = document.getElementById("anosList");
+    datalist.innerHTML = "";
+    let anos = [];
+    if (data.anos) {
+      if (Array.isArray(data.anos)) {
+        anos = data.anos;
+      } else if (data.anos.Anos && Array.isArray(data.anos.Anos)) {
+        anos = data.anos.Anos;
+      }
+    } else if (data.Anos && Array.isArray(data.Anos)) {
+      anos = data.Anos;
+    }
+    if (anos.length > 0) {
+      anosMap = {};
+      anos.forEach((item) => {
+        const label = item.Label || item.Descricao || item.Mes || item.Ano;
+        const code = item.Value || item.Codigo;
+        anosMap[label.toLowerCase()] = code;
         const option = document.createElement("option");
-        option.value = item.Value || item.Codigo;
-        option.text = item.Label || item.Descricao || item.Mes || item.Ano;
-        selectAno.appendChild(option);
+        option.value = label;
+        datalist.appendChild(option);
       });
-      selectAno.disabled = false;
+      document.getElementById("anoInput").disabled = false;
     } else {
-      selectAno.disabled = true;
+      document.getElementById("anoInput").disabled = true;
     }
   } catch (error) {
     console.error("Erro ao carregar anos:", error);
   }
 }
 
-// Eventos: Quando a marca for selecionada, carrega os modelos
-document.getElementById("marca").addEventListener("change", (e) => {
-  const marca = e.target.value;
-  document.getElementById("modelo").innerHTML =
-    '<option value="">Selecione o modelo</option>';
-  document.getElementById("modelo").disabled = true;
-  document.getElementById("ano").innerHTML =
-    '<option value="">Selecione o ano</option>';
-  document.getElementById("ano").disabled = true;
-  if (marca) {
-    carregarModelos(marca);
+// Ao sair do campo de marca, obtém o código correspondente e carrega os modelos
+document.getElementById("marcaInput").addEventListener("change", (e) => {
+  const marcaLabel = e.target.value;
+  const marcaCode = marcasMap[marcaLabel.toLowerCase()];
+  // Limpa os campos de modelo e ano
+  document.getElementById("modeloInput").value = "";
+  document.getElementById("anoInput").value = "";
+  document.getElementById("modelosList").innerHTML = "";
+  document.getElementById("anosList").innerHTML = "";
+  if (marcaCode) {
+    carregarModelos(marcaCode);
+  } else {
+    document.getElementById("modeloInput").disabled = true;
+    document.getElementById("anoInput").disabled = true;
   }
 });
 
-// Quando o modelo for selecionado, carrega os anos
-document.getElementById("modelo").addEventListener("change", (e) => {
-  const marca = document.getElementById("marca").value;
-  const modelo = e.target.value;
-  document.getElementById("ano").innerHTML =
-    '<option value="">Selecione o ano</option>';
-  document.getElementById("ano").disabled = true;
-  if (marca && modelo) {
-    carregarAnos(marca, modelo);
+// Ao sair do campo de modelo, obtém o código correspondente e carrega os anos
+document.getElementById("modeloInput").addEventListener("change", (e) => {
+  const modeloLabel = e.target.value;
+  const modeloCode = modelosMap[modeloLabel.toLowerCase()];
+  // Limpa o campo de ano
+  document.getElementById("anoInput").value = "";
+  document.getElementById("anosList").innerHTML = "";
+  const marcaLabel = document.getElementById("marcaInput").value;
+  const marcaCode = marcasMap[marcaLabel.toLowerCase()];
+  if (marcaCode && modeloCode) {
+    carregarAnos(marcaCode, modeloCode);
+  } else {
+    document.getElementById("anoInput").disabled = true;
   }
 });
 
-// Ao submeter o formulário, consulta o histórico dos últimos 12 meses
+// Ao submeter o formulário, usa os códigos obtidos para chamar o endpoint histórico
 document
   .getElementById("consultaForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    const marca = document.getElementById("marca").value;
-    const modelo = document.getElementById("modelo").value;
-    const ano = document.getElementById("ano").value;
-    if (!marca || !modelo || !ano) {
+    const marcaLabel = document.getElementById("marcaInput").value;
+    const modeloLabel = document.getElementById("modeloInput").value;
+    const anoLabel = document.getElementById("anoInput").value;
+    const marcaCode = marcasMap[marcaLabel.toLowerCase()];
+    const modeloCode = modelosMap[modeloLabel.toLowerCase()];
+    // O endpoint /api/historico espera o valor do ano exatamente como está (por exemplo, "2018 Diesel")
+    if (!marcaCode || !modeloCode || !anoLabel) {
       alert("Por favor, selecione marca, modelo e ano.");
       return;
     }
     try {
       const response = await fetch(
-        `/api/historico?marca=${marca}&modelo=${modelo}&ano=${ano}`
+        `/api/historico?marca=${marcaCode}&modelo=${modeloCode}&ano=${encodeURIComponent(
+          anoLabel
+        )}`
       );
       const data = await response.json();
       const resultadoDiv = document.getElementById("resultado");
@@ -125,5 +179,5 @@ document
     }
   });
 
-// Inicializa o carregamento de marcas ao carregar a página
+// Inicializa o carregamento de marcas quando a página carregar
 window.addEventListener("load", carregarMarcas);
