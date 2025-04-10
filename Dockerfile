@@ -1,4 +1,4 @@
-# Imagem base do Node.js (versão 18-slim)
+# Dockerfile
 FROM node:18-slim
 
 WORKDIR /usr/src/app
@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 
-# Copia o restante dos arquivos do projeto (incluindo front end e back end)
+# Copia o restante dos arquivos do projeto
 COPY . .
 
 # Cria a pasta para persistência do SQLite
@@ -15,4 +15,5 @@ RUN mkdir -p data
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Usa nodemon para reinicializar automaticamente a aplicação
+CMD ["npx", "nodemon", "app.js"]
