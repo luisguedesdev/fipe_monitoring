@@ -105,7 +105,7 @@ async function carregarAnos(marcaCode, modeloCode) {
   }
 }
 
-// Ao sair do campo de marca, obtém o código correspondente e carrega os modelos
+// Evento: Ao alterar o campo "marca", busca modelos e limpa os demais campos
 document.getElementById("marcaInput").addEventListener("change", (e) => {
   const marcaLabel = e.target.value;
   const marcaCode = marcasMap[marcaLabel.toLowerCase()];
@@ -122,7 +122,7 @@ document.getElementById("marcaInput").addEventListener("change", (e) => {
   }
 });
 
-// Ao sair do campo de modelo, obtém o código correspondente e carrega os anos
+// Evento: Ao alterar o campo "modelo", busca os anos disponíveis
 document.getElementById("modeloInput").addEventListener("change", (e) => {
   const modeloLabel = e.target.value;
   const modeloCode = modelosMap[modeloLabel.toLowerCase()];
@@ -138,7 +138,7 @@ document.getElementById("modeloInput").addEventListener("change", (e) => {
   }
 });
 
-// Ao submeter o formulário, usa os códigos obtidos para chamar o endpoint histórico
+// Evento: Ao submeter o formulário, consulta o histórico e exibe o resultado
 document
   .getElementById("consultaForm")
   .addEventListener("submit", async (e) => {
@@ -148,7 +148,7 @@ document
     const anoLabel = document.getElementById("anoInput").value;
     const marcaCode = marcasMap[marcaLabel.toLowerCase()];
     const modeloCode = modelosMap[modeloLabel.toLowerCase()];
-    // O endpoint /api/historico espera o valor do ano exatamente como está (por exemplo, "2018 Diesel")
+    // Se algum valor estiver ausente, alerta o usuário
     if (!marcaCode || !modeloCode || !anoLabel) {
       alert("Por favor, selecione marca, modelo e ano.");
       return;
@@ -179,5 +179,18 @@ document
     }
   });
 
-// Inicializa o carregamento de marcas quando a página carregar
+// Função para limpar todos os campos e o resultado
+function limparCampos() {
+  document.getElementById("consultaForm").reset();
+  document.getElementById("modelosList").innerHTML = "";
+  document.getElementById("anosList").innerHTML = "";
+  document.getElementById("modeloInput").disabled = true;
+  document.getElementById("anoInput").disabled = true;
+  document.getElementById("resultado").innerHTML = "";
+}
+
+// Vincula o evento de clique do botão "Limpar Campos"
+document.getElementById("limparCampos").addEventListener("click", limparCampos);
+
+// Carrega as marcas assim que a página carregar
 window.addEventListener("load", carregarMarcas);
