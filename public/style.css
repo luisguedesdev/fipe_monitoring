@@ -26,3 +26,6 @@ button {
 input[disabled] {
   background-color: #f0f0f0;
 }
+
+/* Você pode incluir regras adicionais, por exemplo para .container, nav, hr etc.
+   Se desejar padronizar, adicione aqui as regras que já discutimos anteriormente. */

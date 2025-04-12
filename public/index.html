@@ -5,9 +5,33 @@
   <meta charset="UTF-8">
   <title>Consulta FIPE</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Exemplo de estilos simples para a navegação */
+    nav {
+      margin-bottom: 20px;
+    }
+
+    nav a {
+      text-decoration: none;
+      background-color: #007bff;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+
+    nav a:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 
 <body>
+  <nav>
+    <!-- Link para o Dashboard -->
+    <a href="dashboard.html">Visualizar Dashboard</a>
+  </nav>
+
   <h1>Consulta FIPE</h1>
   <form id="consultaForm">
     <div>
@@ -39,6 +63,16 @@
   </div>
 
   <script src="app.js"></script>
+  <script>
+    // Função para limpar os campos e o resultado
+    function limparCampos() {
+      document.getElementById("consultaForm").reset();
+      document.getElementById("modeloInput").disabled = true;
+      document.getElementById("anoInput").disabled = true;
+      document.getElementById("resultado").innerHTML = "";
+    }
+    document.getElementById("limparCampos").addEventListener("click", limparCampos);
+  </script>
 </body>
 
 </html>
