@@ -1,9 +1,0 @@
-version: "3.8"
-services:
-  api:
-    build: .
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/usr/src/app # Monta todo o projeto no container
-      - /usr/src/app/node_modules # Cria um volume separado para os node_modules (evita conflito com os da máquina local)
