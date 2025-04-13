@@ -1,5 +1,6 @@
 // db.js
 const sqlite3 = require("sqlite3").verbose();
+
 const DB_PATH = "./data/database.db";
 
 // Cria (ou abre) o banco de dados SQLite
@@ -11,8 +12,7 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   }
 });
 
-// Criação da tabela historico_precos com a coluna códigoTipoCombustivel
-// A UNIQUE inclui: codigoMarca, codigoModelo, anoModelo, codigoTipoVeiculo, codigoTipoCombustivel e codigoTabelaReferencia
+// Criação da tabela historico_precos (agora a UNIQUE inclui também codigoTabelaReferencia)
 const createTableQuery = `
   CREATE TABLE IF NOT EXISTS historico_precos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,7 @@ db.run(createTableQuery, (err) => {
   }
 });
 
-// Função para normalizar o payload, garantindo tipos e remoção de espaços extras
+// Função para normalizar o payload (garante formatação consistente)
 function normalizePayload(payload) {
   return {
     codigoTabelaReferencia: String(payload.codigoTabelaReferencia).trim(),
@@ -51,7 +51,7 @@ function normalizePayload(payload) {
   };
 }
 
-// Função para inserir um registro, evitando duplicação, utilizando o payload normalizado
+// Função para inserir um registro, evitando duplicação (utilizando o payload normalizado)
 function insertHistorico(payload, preco) {
   return new Promise((resolve, reject) => {
     const insertQuery = `
@@ -109,7 +109,7 @@ function updateHistorico(payload, preco) {
   });
 }
 
-// Função para verificar se um registro já existe, usando o payload normalizado
+// Função para verificar se um registro já existe (usando o payload normalizado)
 function recordExists(payload) {
   return new Promise((resolve, reject) => {
     const query = `
@@ -135,7 +135,7 @@ function recordExists(payload) {
   });
 }
 
-// Função que salva o registro: se o registro já existir, retorna "duplicate" (ou pode ser atualizado)
+// Função que salva o registro: atualiza se já existe ou insere se não
 function saveHistorico(payload, preco) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -146,12 +146,12 @@ function saveHistorico(payload, preco) {
         console.log("Registro inserido para payload:", normalized);
         resolve({ action: "insert", id: id });
       } else {
-        console.log("Registro já existe para payload:", normalized);
-        resolve({ action: "duplicate" });
-        // Se preferir atualizar, descomente o código abaixo:
+        // Se desejar atualizar, descomente as linhas abaixo:
         // const changes = await updateHistorico(normalized, preco);
         // console.log("Registro atualizado para payload:", normalized);
         // resolve({ action: "update", changes: changes });
+        console.log("Registro já existe para payload:", normalized);
+        resolve({ action: "duplicate" });
       }
     } catch (err) {
       reject(err);
@@ -160,7 +160,6 @@ function saveHistorico(payload, preco) {
 }
 
 // Função para consultar todos os registros (por exemplo, para calcular a média)
-// Retorna os preços registrados para uma determinada marca e modelo
 function getHistoricoByMarcaModelo(codigoMarca, codigoModelo) {
   return new Promise((resolve, reject) => {
     const query = `SELECT preco FROM historico_precos WHERE codigoMarca = ? AND codigoModelo = ?`;

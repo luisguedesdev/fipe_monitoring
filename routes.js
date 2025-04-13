@@ -3,14 +3,11 @@ const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 
-// Importa funções auxiliares do utils
 const { parseAno, parsePrice } = require("./utils");
-// Importa funções de acesso ao banco, além do objeto db para consultas diretas
 const {
   insertHistorico,
   recordExists,
   getHistoricoByMarcaModelo,
-  db,
 } = require("./db");
 
 // URLs dos endpoints da FIPE
@@ -30,11 +27,7 @@ const axiosConfig = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// Funções Auxiliares para chamadas à FIPE
-// ---------------------------------------------------------------------------
-
-// Busca a tabela de referência padrão
+// Função para buscar a tabela de referência padrão
 async function fetchTabelaReferenciaPadrao() {
   try {
     const response = await axios.post(URL_TABELA_REFERENCIA, {}, axiosConfig);
@@ -48,7 +41,7 @@ async function fetchTabelaReferenciaPadrao() {
   }
 }
 
-// Busca as 12 tabelas de referência (usado para registro do histórico)
+// Função para buscar as 12 tabelas de referência (para histórico)
 async function fetchUltimas12Tabelas() {
   try {
     const response = await axios.post(URL_TABELA_REFERENCIA, {}, axiosConfig);
@@ -62,11 +55,9 @@ async function fetchUltimas12Tabelas() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Endpoints básicos (FIPE)
-// ---------------------------------------------------------------------------
+// Rotas
 
-// GET /api/marcas - Consulta as marcas pela tabela padrão e tipo de veículo
+// GET /api/marcas
 router.get("/marcas", async (req, res) => {
   const tipoVeiculo = Number(req.query.tipoVeiculo) || 1;
   try {
@@ -87,7 +78,7 @@ router.get("/marcas", async (req, res) => {
   }
 });
 
-// GET /api/modelos - Consulta os modelos para uma marca
+// GET /api/modelos
 router.get("/modelos", async (req, res) => {
   let { marca, tipoVeiculo = 1 } = req.query;
   if (!marca)
@@ -117,7 +108,7 @@ router.get("/modelos", async (req, res) => {
   }
 });
 
-// GET /api/anos - Consulta os anos disponíveis (da FIPE) para uma marca e modelo
+// GET /api/anos
 router.get("/anos", async (req, res) => {
   let { marca, modelo, tipoVeiculo = 1 } = req.query;
   if (!marca || !modelo)
@@ -146,7 +137,7 @@ router.get("/anos", async (req, res) => {
   }
 });
 
-// GET /api/preco - Consulta o preço atual (via FIPE)
+// GET /api/preco - Preço atual
 router.get("/preco", async (req, res) => {
   let {
     marca,
@@ -172,6 +163,7 @@ router.get("/preco", async (req, res) => {
     return res
       .status(500)
       .json({ error: "Não foi possível obter a tabela de referência." });
+
   const payload = {
     codigoTabelaReferencia: codTRef,
     codigoTipoVeiculo: tipoVeiculo,
@@ -191,7 +183,7 @@ router.get("/preco", async (req, res) => {
   }
 });
 
-// GET /api/historico - Consulta e registra o histórico
+// GET /api/historico - Consulta e registra histórico (não insere duplicado)
 router.get("/historico", async (req, res) => {
   let {
     marca,
@@ -218,7 +210,7 @@ router.get("/historico", async (req, res) => {
       .status(500)
       .json({ error: "Não foi possível obter a tabela de referência." });
 
-  // Obtemos 12 tabelas de referência para registrar o histórico
+  // Obtemos 12 tabelas de referência
   const tabelas = await fetchUltimas12Tabelas();
   if (!tabelas.length)
     return res
@@ -241,7 +233,7 @@ router.get("/historico", async (req, res) => {
       const response = await axios.post(URL_PRECO, payload, axiosConfig);
       const preco = response.data.Valor;
       const valor = preco && preco.trim() !== "" ? preco.trim() : "N/D";
-      // Se o preço for válido, tenta salvar o registro no banco (sem duplicação)
+      // Se o valor é válido, verifica se o registro já existe; se não, insere
       if (valor !== "N/D") {
         try {
           const exists = await recordExists(payload);
@@ -274,85 +266,6 @@ router.get("/historico", async (req, res) => {
   } else {
     res.json({ historico });
   }
-});
-
-// GET /api/anosHistoricos - Retorna os anos distintos registrados para uma marca e modelo
-router.get("/anosHistoricos", async (req, res) => {
-  let { marca, modelo } = req.query;
-  if (!marca || !modelo)
-    return res
-      .status(400)
-      .json({ error: 'Parâmetros "marca" e "modelo" são obrigatórios.' });
-  marca = Number(marca);
-  modelo = Number(modelo);
-  const query = `
-    SELECT DISTINCT anoModelo 
-    FROM historico_precos 
-    WHERE codigoMarca = ? AND codigoModelo = ?
-    ORDER BY anoModelo DESC
-  `;
-  db.all(query, [marca, modelo], (err, rows) => {
-    if (err) {
-      console.error("Erro ao buscar anos históricos:", err.message);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({ anos: rows });
-  });
-});
-
-// GET /api/veiculos - Retorna os veículos distintos registrados no histórico
-router.get("/veiculos", async (req, res) => {
-  const query = `
-    SELECT DISTINCT codigoMarca, codigoModelo, anoModelo, codigoTipoCombustivel, codigoTipoVeiculo
-    FROM historico_precos
-  `;
-  db.all(query, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ veiculos: rows });
-  });
-});
-
-// GET /api/depreciacao - Calcula a depreciação até a data atual para um veículo
-router.get("/depreciacao", async (req, res) => {
-  let { marca, modelo } = req.query;
-  if (!marca || !modelo)
-    return res
-      .status(400)
-      .json({ error: 'Parâmetros "marca" e "modelo" são obrigatórios.' });
-  marca = Number(marca);
-  modelo = Number(modelo);
-  // Seleciona os registros ordenados por data de consulta (ascendente)
-  const query = `
-    SELECT preco, data_consulta 
-    FROM historico_precos 
-    WHERE codigoMarca = ? AND codigoModelo = ?
-    ORDER BY datetime(data_consulta) ASC
-  `;
-  db.all(query, [marca, modelo], (err, rows) => {
-    if (err) {
-      console.error(
-        "Erro ao consultar histórico para depreciação:",
-        err.message
-      );
-      return res.status(500).json({ error: err.message });
-    }
-    if (!rows || rows.length === 0) {
-      return res
-        .status(404)
-        .json({
-          error: "Nenhum registro encontrado para cálculo de depreciação.",
-        });
-    }
-    const precoInicial = parsePrice(rows[0].preco);
-    const precoAtual = parsePrice(rows[rows.length - 1].preco);
-    const depreciacaoPercent =
-      ((precoInicial - precoAtual) / precoInicial) * 100;
-    res.json({
-      precoInicial: rows[0].preco,
-      precoAtual: rows[rows.length - 1].preco,
-      depreciacao: depreciacaoPercent.toFixed(2) + "%",
-    });
-  });
 });
 
 module.exports = router;

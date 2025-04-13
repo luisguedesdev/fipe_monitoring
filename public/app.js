@@ -1,28 +1,24 @@
-// app.js - Front End
-
 // Mapas globais para armazenar os códigos correspondentes aos rótulos
 let marcasMap = {};
 let modelosMap = {};
 let anosMap = {};
 
-// Função para carregar as marcas via endpoint /api/marcas
+// Carrega as marcas e popula o datalist "marcasList"
 async function carregarMarcas() {
   try {
     const response = await fetch("/api/marcas");
     const data = await response.json();
     const datalist = document.getElementById("marcasList");
     datalist.innerHTML = "";
-    // Permite usar tanto "marcas" quanto "Marcas" no objeto retornado
+    // Aceita ambas as chaves "marcas" ou "Marcas"
     const marcas = data.marcas || data.Marcas;
     if (marcas && Array.isArray(marcas)) {
       marcasMap = {}; // Reinicia o mapa
       marcas.forEach((item) => {
         const label = item.Label || item.Nome || item.Descricao;
         const code = item.Value || item.Codigo;
-        // Armazena a chave em minúsculas para facilitar a comparação
         marcasMap[label.toLowerCase()] = code;
         const option = document.createElement("option");
-        // Para o valor do option, usamos o label; o código será recuperado do mapa
         option.value = label;
         datalist.appendChild(option);
       });
@@ -34,15 +30,15 @@ async function carregarMarcas() {
   }
 }
 
-// Função para carregar os modelos para uma marca (usando /api/modelos)
+// Carrega os modelos com base no código da marca selecionada e popula o datalist "modelosList"
 async function carregarModelos(marcaCode) {
   try {
     const response = await fetch(`/api/modelos?marca=${marcaCode}`);
     const data = await response.json();
     const datalist = document.getElementById("modelosList");
     datalist.innerHTML = "";
+    // O endpoint pode retornar { Modelos: [...] } ou apenas um array
     let modelos = [];
-    // O endpoint pode retornar os modelos de diferentes formas
     if (data.modelos) {
       if (Array.isArray(data.modelos)) {
         modelos = data.modelos;
@@ -62,7 +58,6 @@ async function carregarModelos(marcaCode) {
         option.value = label;
         datalist.appendChild(option);
       });
-      // Habilita o input de modelo
       document.getElementById("modeloInput").disabled = false;
     } else {
       document.getElementById("modeloInput").disabled = true;
@@ -72,9 +67,7 @@ async function carregarModelos(marcaCode) {
   }
 }
 
-// Função para carregar os anos disponíveis (ou os anos históricos)
-// Aqui, usamos o endpoint /api/anos (ou, se preferir, /api/anosHistoricos)
-// Em nosso exemplo, vamos manter /api/anos, que deverá retornar os anos da FIPE.
+// Carrega os anos disponíveis com base no código da marca e modelo e popula o datalist "anosList"
 async function carregarAnos(marcaCode, modeloCode) {
   try {
     const response = await fetch(
@@ -96,7 +89,6 @@ async function carregarAnos(marcaCode, modeloCode) {
     if (anos.length > 0) {
       anosMap = {};
       anos.forEach((item) => {
-        // Utiliza a propriedade Label ou Descricao, ou se estiver presente o valor do ano
         const label = item.Label || item.Descricao || item.Mes || item.Ano;
         const code = item.Value || item.Codigo;
         anosMap[label.toLowerCase()] = code;
@@ -113,9 +105,7 @@ async function carregarAnos(marcaCode, modeloCode) {
   }
 }
 
-// Eventos para os inputs:
-
-// Quando o usuário altera o campo da marca, busca os modelos correspondentes
+// Evento: Ao alterar o campo "marca", busca modelos e limpa os demais campos
 document.getElementById("marcaInput").addEventListener("change", (e) => {
   const marcaLabel = e.target.value;
   const marcaCode = marcasMap[marcaLabel.toLowerCase()];
@@ -132,7 +122,7 @@ document.getElementById("marcaInput").addEventListener("change", (e) => {
   }
 });
 
-// Quando o usuário altera o campo de modelo, busca os anos disponíveis
+// Evento: Ao alterar o campo "modelo", busca os anos disponíveis
 document.getElementById("modeloInput").addEventListener("change", (e) => {
   const modeloLabel = e.target.value;
   const modeloCode = modelosMap[modeloLabel.toLowerCase()];
@@ -148,7 +138,7 @@ document.getElementById("modeloInput").addEventListener("change", (e) => {
   }
 });
 
-// Ao submeter o formulário, consulta o endpoint /api/historico e exibe os resultados
+// Evento: Ao submeter o formulário, consulta o histórico e exibe o resultado
 document
   .getElementById("consultaForm")
   .addEventListener("submit", async (e) => {
@@ -158,6 +148,7 @@ document
     const anoLabel = document.getElementById("anoInput").value;
     const marcaCode = marcasMap[marcaLabel.toLowerCase()];
     const modeloCode = modelosMap[modeloLabel.toLowerCase()];
+    // Se algum valor estiver ausente, alerta o usuário
     if (!marcaCode || !modeloCode || !anoLabel) {
       alert("Por favor, selecione marca, modelo e ano.");
       return;
@@ -188,7 +179,7 @@ document
     }
   });
 
-// Função para limpar o formulário e os resultados
+// Função para limpar todos os campos e o resultado
 function limparCampos() {
   document.getElementById("consultaForm").reset();
   document.getElementById("modelosList").innerHTML = "";
@@ -198,8 +189,8 @@ function limparCampos() {
   document.getElementById("resultado").innerHTML = "";
 }
 
-// Vincula o evento do botão "Limpar Campos"
+// Vincula o evento de clique do botão "Limpar Campos"
 document.getElementById("limparCampos").addEventListener("click", limparCampos);
 
-// Ao carregar a página, carrega as marcas
+// Carrega as marcas assim que a página carregar
 window.addEventListener("load", carregarMarcas);
