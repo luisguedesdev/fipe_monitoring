@@ -1,9 +1,7 @@
-// Mapas globais para armazenar os códigos correspondentes aos rótulos
 let marcasMap = {};
 let modelosMap = {};
 let anosMap = {};
 
-// Carrega as marcas e popula o datalist "marcasList"
 async function carregarMarcas() {
   try {
     const response = await fetch("/api/marcas");
@@ -102,7 +100,7 @@ document.getElementById("marcaInput").addEventListener("change", (e) => {
   document.getElementById("anoInput").value = "";
   document.getElementById("modelosList").innerHTML = "";
   document.getElementById("anosList").innerHTML = "";
-  document.getElementById("nomeMarca").value = marcaLabel; // seta campo oculto
+  document.getElementById("nomeMarca").value = marcaLabel;
   if (marcaCode) {
     carregarModelos(marcaCode);
   } else {
@@ -145,11 +143,16 @@ document
       return;
     }
 
+    // inclui os nomes no fetch como query string
     try {
       const response = await fetch(
         `/api/historico?marca=${marcaCode}&modelo=${modeloCode}&ano=${encodeURIComponent(
           anoLabel
-        )}`
+        )}&nomeMarca=${encodeURIComponent(
+          marcaLabel
+        )}&nomeModelo=${encodeURIComponent(
+          modeloLabel
+        )}&nomeAno=${encodeURIComponent(anoLabel)}`
       );
       const data = await response.json();
       const resultadoDiv = document.getElementById("resultado");
@@ -184,5 +187,4 @@ function limparCampos() {
 }
 
 document.getElementById("limparCampos").addEventListener("click", limparCampos);
-
 window.addEventListener("load", carregarMarcas);

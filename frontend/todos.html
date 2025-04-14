@@ -13,7 +13,7 @@
         const res = await fetch("/api/todos-registros");
         const data = await res.json();
 
-        if (data.registros.length === 0) {
+        if (!data.registros || data.registros.length === 0) {
           lista.innerHTML = "<p>Nenhum registro encontrado no banco.</p>";
           return;
         }
@@ -36,15 +36,16 @@
           const row = document.createElement("tr");
           row.innerHTML = `
             <td>${r.id}</td>
-            <td>${r.codigoMarca}</td>
-            <td>${r.codigoModelo}</td>
-            <td>${r.anoModelo}</td>
+            <td>${r.nomeMarca || r.codigoMarca}</td>
+            <td>${r.nomeModelo || r.codigoModelo}</td>
+            <td>${r.nomeAno || r.anoModelo}</td>
             <td>${r.preco}</td>
             <td>${r.data_consulta}</td>
           `;
           table.appendChild(row);
         });
 
+        lista.innerHTML = "";
         lista.appendChild(table);
       } catch (err) {
         lista.innerHTML = "<p>Erro ao buscar registros.</p>";

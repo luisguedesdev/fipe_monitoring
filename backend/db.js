@@ -1,6 +1,13 @@
 const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
 
-const DB_PATH = "./data/database.db";
+// Garante que a pasta ./data existe
+const DB_DIR = "./data";
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR);
+}
+
+const DB_PATH = `${DB_DIR}/database.db`;
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
     console.error("Erro ao conectar no SQLite:", err.message);
@@ -9,7 +16,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   }
 });
 
-// Criação da tabela com campos de nomes legíveis
 const createTableQuery = `
   CREATE TABLE IF NOT EXISTS historico_precos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -17,22 +23,22 @@ const createTableQuery = `
     codigoTabelaReferencia TEXT,
     codigoTipoVeiculo INTEGER,
     codigoMarca INTEGER,
-    nomeMarca TEXT,
     codigoModelo INTEGER,
-    nomeModelo TEXT,
     anoModelo TEXT,
-    nomeAno TEXT,
     preco TEXT,
     codigoTipoCombustivel INTEGER,
+    nomeMarca TEXT,
+    nomeModelo TEXT,
+    nomeAno TEXT,
     UNIQUE(codigoMarca, codigoModelo, anoModelo, codigoTipoVeiculo, codigoTipoCombustivel, codigoTabelaReferencia)
   );
 `;
 
 db.run(createTableQuery, (err) => {
   if (err) {
-    console.error("Erro ao criar tabela:", err.message);
+    console.error("Erro ao criar a tabela historico_precos:", err.message);
   } else {
-    console.log("Tabela historico_precos pronta.");
+    console.log("Tabela historico_precos criada com sucesso.");
   }
 });
 
@@ -41,12 +47,15 @@ function normalizePayload(payload) {
     codigoTabelaReferencia: String(payload.codigoTabelaReferencia).trim(),
     codigoTipoVeiculo: Number(payload.codigoTipoVeiculo),
     codigoMarca: Number(payload.codigoMarca),
-    nomeMarca: String(payload.nomeMarca || "").trim(),
     codigoModelo: Number(payload.codigoModelo),
-    nomeModelo: String(payload.nomeModelo || "").trim(),
     anoModelo: String(payload.anoModelo).trim(),
-    nomeAno: String(payload.nomeAno || "").trim(),
     codigoTipoCombustivel: Number(payload.codigoTipoCombustivel),
+    tipoVeiculo: String(payload.tipoVeiculo).trim().toLowerCase(),
+    modeloCodigoExterno: String(payload.modeloCodigoExterno || "").trim(),
+    tipoConsulta: String(payload.tipoConsulta).trim().toLowerCase(),
+    nomeMarca: String(payload.nomeMarca || "").trim(),
+    nomeModelo: String(payload.nomeModelo || "").trim(),
+    nomeAno: String(payload.nomeAno || "").trim(),
   };
 }
 
@@ -54,23 +63,23 @@ function insertHistorico(payload, preco) {
   return new Promise((resolve, reject) => {
     const insertQuery = `
       INSERT INTO historico_precos 
-      (codigoTabelaReferencia, codigoTipoVeiculo, codigoMarca, nomeMarca, codigoModelo, nomeModelo, anoModelo, nomeAno, preco, codigoTipoCombustivel)
+      (codigoTabelaReferencia, codigoTipoVeiculo, codigoMarca, codigoModelo, anoModelo, preco, codigoTipoCombustivel, nomeMarca, nomeModelo, nomeAno)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
-    const n = normalizePayload(payload);
+    const normalized = normalizePayload(payload);
     db.run(
       insertQuery,
       [
-        n.codigoTabelaReferencia,
-        n.codigoTipoVeiculo,
-        n.codigoMarca,
-        n.nomeMarca,
-        n.codigoModelo,
-        n.nomeModelo,
-        n.anoModelo,
-        n.nomeAno,
+        normalized.codigoTabelaReferencia,
+        normalized.codigoTipoVeiculo,
+        normalized.codigoMarca,
+        normalized.codigoModelo,
+        normalized.anoModelo,
         preco,
-        n.codigoTipoCombustivel,
+        normalized.codigoTipoCombustivel,
+        normalized.nomeMarca,
+        normalized.nomeModelo,
+        normalized.nomeAno,
       ],
       function (err) {
         if (err) return reject(err);
@@ -80,49 +89,22 @@ function insertHistorico(payload, preco) {
   });
 }
 
-function updateHistorico(payload, preco) {
-  return new Promise((resolve, reject) => {
-    const updateQuery = `
-      UPDATE historico_precos 
-      SET data_consulta = datetime('now','localtime'), preco = ?
-      WHERE codigoMarca = ? AND codigoModelo = ? AND anoModelo = ? AND codigoTipoVeiculo = ? AND codigoTipoCombustivel = ? AND codigoTabelaReferencia = ?;
-    `;
-    const n = normalizePayload(payload);
-    db.run(
-      updateQuery,
-      [
-        preco,
-        n.codigoMarca,
-        n.codigoModelo,
-        n.anoModelo,
-        n.codigoTipoVeiculo,
-        n.codigoTipoCombustivel,
-        n.codigoTabelaReferencia,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve(this.changes);
-      }
-    );
-  });
-}
-
 function recordExists(payload) {
   return new Promise((resolve, reject) => {
-    const n = normalizePayload(payload);
     const query = `
       SELECT id FROM historico_precos 
       WHERE codigoMarca = ? AND codigoModelo = ? AND anoModelo = ? AND codigoTipoVeiculo = ? AND codigoTipoCombustivel = ? AND codigoTabelaReferencia = ?
     `;
+    const normalized = normalizePayload(payload);
     db.get(
       query,
       [
-        n.codigoMarca,
-        n.codigoModelo,
-        n.anoModelo,
-        n.codigoTipoVeiculo,
-        n.codigoTipoCombustivel,
-        n.codigoTabelaReferencia,
+        normalized.codigoMarca,
+        normalized.codigoModelo,
+        normalized.anoModelo,
+        normalized.codigoTipoVeiculo,
+        normalized.codigoTipoCombustivel,
+        normalized.codigoTabelaReferencia,
       ],
       (err, row) => {
         if (err) return reject(err);
@@ -135,14 +117,14 @@ function recordExists(payload) {
 function saveHistorico(payload, preco) {
   return new Promise(async (resolve, reject) => {
     try {
-      const n = normalizePayload(payload);
-      const exists = await recordExists(n);
+      const normalized = normalizePayload(payload);
+      const exists = await recordExists(normalized);
       if (!exists) {
-        const id = await insertHistorico(n, preco);
-        console.log("Registro inserido para payload:", n);
+        const id = await insertHistorico(normalized, preco);
+        console.log("Registro inserido para payload:", normalized);
         resolve({ action: "insert", id });
       } else {
-        console.log("Registro já existe para payload:", n);
+        console.log("Registro já existe para payload:", normalized);
         resolve({ action: "duplicate" });
       }
     } catch (err) {
@@ -166,7 +148,7 @@ function getHistoricoByMarcaModeloFromDB(marca, modelo) {
     const query = `
       SELECT data_consulta as referencia, preco
       FROM historico_precos
-      WHERE nomeMarca = ? AND nomeModelo = ?
+      WHERE codigoMarca = ? AND codigoModelo = ?
       ORDER BY data_consulta ASC
     `;
     db.all(query, [marca, modelo], (err, rows) => {
@@ -179,9 +161,9 @@ function getHistoricoByMarcaModeloFromDB(marca, modelo) {
 function getVeiculosRegistrados() {
   return new Promise((resolve, reject) => {
     const query = `
-      SELECT DISTINCT nomeMarca AS marca, nomeModelo AS modelo, nomeAno AS ano
+      SELECT DISTINCT codigoMarca AS marca, codigoModelo AS modelo, nomeMarca, nomeModelo
       FROM historico_precos
-      ORDER BY marca, modelo, ano
+      ORDER BY nomeMarca, nomeModelo
     `;
     db.all(query, [], (err, rows) => {
       if (err) return reject(err);
@@ -193,7 +175,6 @@ function getVeiculosRegistrados() {
 module.exports = {
   db,
   insertHistorico,
-  updateHistorico,
   recordExists,
   saveHistorico,
   getHistoricoByMarcaModelo,
