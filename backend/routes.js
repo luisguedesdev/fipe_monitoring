@@ -222,34 +222,25 @@ router.get("/historico", async (req, res) => {
 
 router.get("/dashboard/:marca/:modelo", async (req, res) => {
   const { marca, modelo } = req.params;
-  const { ano } = req.query;
-  try {
-    let historico;
-    if (ano) {
-      historico = await new Promise((resolve, reject) => {
-        const query = `
-          SELECT data_consulta as referencia, preco
-          FROM historico_precos
-          WHERE codigoMarca = ? AND codigoModelo = ? AND nomeAno = ?
-          ORDER BY data_consulta ASC
-        `;
-        db.all(query, [marca, modelo, ano], (err, rows) => {
-          if (err) return reject(err);
-          resolve(rows);
-        });
-      });
-    } else {
-      historico = await getHistoricoByMarcaModeloFromDB(marca, modelo);
-    }
+  const ano = req.query.ano;
+  const query = ano
+    ? `SELECT data_consulta as referencia, preco FROM historico_precos WHERE codigoMarca = ? AND codigoModelo = ? AND nomeAno = ? ORDER BY data_consulta ASC`
+    : `SELECT data_consulta as referencia, preco FROM historico_precos WHERE codigoMarca = ? AND codigoModelo = ? ORDER BY data_consulta ASC`;
 
-    if (!historico || historico.length === 0) {
+  const params = ano ? [marca, modelo, ano] : [marca, modelo];
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ error: "Erro ao consultar dados do dashboard." });
+    }
+    if (!rows || rows.length === 0) {
       return res.status(404).json({ error: "Sem histórico encontrado." });
     }
-    const previsao = preverPreco(historico);
-    res.json({ historico, previsao });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao gerar dados para o dashboard." });
-  }
+    const previsao = preverPreco(rows);
+    res.json({ historico: rows, previsao });
+  });
 });
 
 router.get("/todos-registros", (req, res) => {
