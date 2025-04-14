@@ -8,7 +8,12 @@
 </head>
 
 <body>
+  <nav>
+    <a href="dashboard.html" class="btn-link">Ir para o Dashboard</a>
+  </nav>
+
   <h1>Consulta FIPE</h1>
+
   <form id="consultaForm">
     <div>
       <label for="marcaInput">Marca:</label>
@@ -16,27 +21,33 @@
         placeholder="Selecione ou digite a marca">
       <datalist id="marcasList"></datalist>
     </div>
+
     <div>
       <label for="modeloInput">Modelo:</label>
       <input type="text" id="modeloInput" name="modelo" list="modelosList" autocomplete="off"
         placeholder="Selecione ou digite o modelo" disabled>
       <datalist id="modelosList"></datalist>
     </div>
+
     <div>
       <label for="anoInput">Ano Modelo:</label>
       <input type="text" id="anoInput" name="ano" list="anosList" autocomplete="off"
         placeholder="Selecione ou digite o ano" disabled>
       <datalist id="anosList"></datalist>
     </div>
+
+    <!-- Campos ocultos para armazenar os nomes formatados -->
+    <input type="hidden" id="nomeMarca" name="nomeMarca">
+    <input type="hidden" id="nomeModelo" name="nomeModelo">
+    <input type="hidden" id="nomeAno" name="nomeAno">
+
     <div>
       <button type="submit">Consultar Histórico</button>
       <button type="button" id="limparCampos">Limpar Campos</button>
     </div>
   </form>
 
-  <div id="resultado">
-    <!-- O histórico será exibido aqui -->
-  </div>
+  <div id="resultado"></div>
 
   <script src="app.js"></script>
 </body>

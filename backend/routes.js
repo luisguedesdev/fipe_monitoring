@@ -3,14 +3,15 @@ const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 
-const { parseAno, parsePrice } = require("./utils");
+const { parseAno } = require("./utils");
 const {
   insertHistorico,
   recordExists,
   getHistoricoByMarcaModelo,
+  getHistoricoByMarcaModeloFromDB,
+  db,
 } = require("./db");
 
-// URLs dos endpoints da FIPE
 const URL_TABELA_REFERENCIA =
   "https://veiculos.fipe.org.br/api/veiculos/ConsultarTabelaDeReferencia";
 const URL_MARCAS = "https://veiculos.fipe.org.br/api/veiculos/ConsultarMarcas";
@@ -27,7 +28,6 @@ const axiosConfig = {
   },
 };
 
-// Função para buscar a tabela de referência padrão
 async function fetchTabelaReferenciaPadrao() {
   try {
     const response = await axios.post(URL_TABELA_REFERENCIA, {}, axiosConfig);
@@ -41,7 +41,6 @@ async function fetchTabelaReferenciaPadrao() {
   }
 }
 
-// Função para buscar as 12 tabelas de referência (para histórico)
 async function fetchUltimas12Tabelas() {
   try {
     const response = await axios.post(URL_TABELA_REFERENCIA, {}, axiosConfig);
@@ -55,9 +54,6 @@ async function fetchUltimas12Tabelas() {
   }
 }
 
-// Rotas
-
-// GET /api/marcas
 router.get("/marcas", async (req, res) => {
   const tipoVeiculo = Number(req.query.tipoVeiculo) || 1;
   try {
@@ -78,7 +74,6 @@ router.get("/marcas", async (req, res) => {
   }
 });
 
-// GET /api/modelos
 router.get("/modelos", async (req, res) => {
   let { marca, tipoVeiculo = 1 } = req.query;
   if (!marca)
@@ -108,7 +103,6 @@ router.get("/modelos", async (req, res) => {
   }
 });
 
-// GET /api/anos
 router.get("/anos", async (req, res) => {
   let { marca, modelo, tipoVeiculo = 1 } = req.query;
   if (!marca || !modelo)
@@ -137,53 +131,6 @@ router.get("/anos", async (req, res) => {
   }
 });
 
-// GET /api/preco - Preço atual
-router.get("/preco", async (req, res) => {
-  let {
-    marca,
-    modelo,
-    ano,
-    tipoVeiculo = 1,
-    codigoTabelaReferencia,
-  } = req.query;
-  if (!marca || !modelo || !ano)
-    return res
-      .status(400)
-      .json({
-        error: 'Parâmetros "marca", "modelo" e "ano" são obrigatórios.',
-      });
-  marca = Number(marca);
-  modelo = Number(modelo);
-  tipoVeiculo = Number(tipoVeiculo);
-  const { anoModelo, codigoTipoCombustivel } = parseAno(ano);
-  const codTRef = codigoTabelaReferencia
-    ? String(codigoTabelaReferencia)
-    : await fetchTabelaReferenciaPadrao();
-  if (!codTRef)
-    return res
-      .status(500)
-      .json({ error: "Não foi possível obter a tabela de referência." });
-
-  const payload = {
-    codigoTabelaReferencia: codTRef,
-    codigoTipoVeiculo: tipoVeiculo,
-    codigoMarca: marca,
-    codigoModelo: modelo,
-    anoModelo: anoModelo,
-    codigoTipoCombustivel: codigoTipoCombustivel,
-    tipoVeiculo: "carro",
-    modeloCodigoExterno: "",
-    tipoConsulta: "tradicional",
-  };
-  try {
-    const response = await axios.post(URL_PRECO, payload, axiosConfig);
-    res.json({ preco: response.data });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar preço." });
-  }
-});
-
-// GET /api/historico - Consulta e registra histórico (não insere duplicado)
 router.get("/historico", async (req, res) => {
   let {
     marca,
@@ -191,13 +138,15 @@ router.get("/historico", async (req, res) => {
     ano,
     tipoVeiculo = 1,
     codigoTabelaReferencia,
+    nomeMarca,
+    nomeModelo,
+    nomeAno,
   } = req.query;
   if (!marca || !modelo || !ano)
-    return res
-      .status(400)
-      .json({
-        error: 'Parâmetros "marca", "modelo" e "ano" são obrigatórios.',
-      });
+    return res.status(400).json({
+      error: 'Parâmetros "marca", "modelo" e "ano" são obrigatórios.',
+    });
+
   marca = Number(marca);
   modelo = Number(modelo);
   tipoVeiculo = Number(tipoVeiculo);
@@ -210,12 +159,12 @@ router.get("/historico", async (req, res) => {
       .status(500)
       .json({ error: "Não foi possível obter a tabela de referência." });
 
-  // Obtemos 12 tabelas de referência
   const tabelas = await fetchUltimas12Tabelas();
   if (!tabelas.length)
     return res
       .status(500)
       .json({ error: "Não foi possível obter as tabelas de referência." });
+
   let historico = [];
   for (const tabela of tabelas) {
     const payload = {
@@ -228,12 +177,14 @@ router.get("/historico", async (req, res) => {
       tipoVeiculo: "carro",
       modeloCodigoExterno: "",
       tipoConsulta: "tradicional",
+      nomeMarca: nomeMarca || "",
+      nomeModelo: nomeModelo || "",
+      nomeAno: nomeAno || "",
     };
     try {
       const response = await axios.post(URL_PRECO, payload, axiosConfig);
       const preco = response.data.Valor;
       const valor = preco && preco.trim() !== "" ? preco.trim() : "N/D";
-      // Se o valor é válido, verifica se o registro já existe; se não, insere
       if (valor !== "N/D") {
         try {
           const exists = await recordExists(payload);
@@ -258,6 +209,7 @@ router.get("/historico", async (req, res) => {
       );
     }
   }
+
   if (historico.length === 0) {
     res.json({
       error:
@@ -267,5 +219,51 @@ router.get("/historico", async (req, res) => {
     res.json({ historico });
   }
 });
+
+router.get("/dashboard/:marca/:modelo", async (req, res) => {
+  const { marca, modelo } = req.params;
+  try {
+    const historico = await getHistoricoByMarcaModeloFromDB(marca, modelo);
+    if (!historico || historico.length === 0) {
+      return res.status(404).json({ error: "Sem histórico encontrado." });
+    }
+    const previsao = preverPreco(historico);
+    res.json({ historico, previsao });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao gerar dados para o dashboard." });
+  }
+});
+
+router.get("/todos-registros", (req, res) => {
+  const sql = `SELECT * FROM historico_precos ORDER BY data_consulta DESC`;
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error("Erro ao consultar registros:", err.message);
+      return res
+        .status(500)
+        .json({ error: "Erro ao acessar o banco de dados." });
+    }
+    res.json({ registros: rows });
+  });
+});
+
+function preverPreco(historico) {
+  const meses = historico.map((_, i) => i + 1);
+  const precos = historico.map((item) =>
+    parseFloat(item.preco.replace("R$", "").replace(".", "").replace(",", "."))
+  );
+  const n = meses.length;
+  const somaX = meses.reduce((a, b) => a + b, 0);
+  const somaY = precos.reduce((a, b) => a + b, 0);
+  const somaXY = meses.reduce((sum, x, i) => sum + x * precos[i], 0);
+  const somaX2 = meses.reduce((sum, x) => sum + x * x, 0);
+
+  const m = (n * somaXY - somaX * somaY) / (n * somaX2 - somaX * somaX);
+  const b = (somaY - m * somaX) / n;
+
+  const proximoMes = n + 1;
+  const precoPrevisto = m * proximoMes + b;
+  return precoPrevisto.toFixed(2);
+}
 
 module.exports = router;

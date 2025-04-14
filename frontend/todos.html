@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Todos os Registros</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const lista = document.getElementById("lista");
+
+      try {
+        const res = await fetch("/api/todos-registros");
+        const data = await res.json();
+
+        if (data.registros.length === 0) {
+          lista.innerHTML = "<p>Nenhum registro encontrado no banco.</p>";
+          return;
+        }
+
+        const table = document.createElement("table");
+        table.border = "1";
+        table.cellPadding = "8";
+        table.innerHTML = `
+          <tr>
+            <th>ID</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Ano</th>
+            <th>Preço</th>
+            <th>Referência</th>
+          </tr>
+        `;
+
+        data.registros.forEach((r) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${r.id}</td>
+            <td>${r.codigoMarca}</td>
+            <td>${r.codigoModelo}</td>
+            <td>${r.anoModelo}</td>
+            <td>${r.preco}</td>
+            <td>${r.data_consulta}</td>
+          `;
+          table.appendChild(row);
+        });
+
+        lista.appendChild(table);
+      } catch (err) {
+        lista.innerHTML = "<p>Erro ao buscar registros.</p>";
+        console.error("Erro ao carregar registros:", err);
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <nav>
+    <a href="index.html" class="btn-link">⬅ Voltar</a>
+  </nav>
+
+  <h1>Todos os Registros no Banco</h1>
+  <div id="lista">Carregando registros...</div>
+</body>
+
+</html>

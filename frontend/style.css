@@ -1,6 +1,8 @@
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
+  background-color: #f9f9f9;
+  color: #333;
 }
 
 h1,
@@ -8,8 +10,10 @@ h2 {
   color: #333;
 }
 
-form div {
-  margin-bottom: 10px;
+form div,
+.controls,
+nav {
+  margin-bottom: 15px;
 }
 
 label {
@@ -18,11 +22,45 @@ label {
 }
 
 input,
+select,
 button {
-  padding: 5px;
+  padding: 6px;
   font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0f5dc2;
 }
 
 input[disabled] {
   background-color: #f0f0f0;
+}
+
+canvas {
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.btn-link {
+  color: #1a73e8;
+  font-weight: bold;
+  text-decoration: none;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
 }

@@ -10,10 +10,9 @@ async function carregarMarcas() {
     const data = await response.json();
     const datalist = document.getElementById("marcasList");
     datalist.innerHTML = "";
-    // Aceita ambas as chaves "marcas" ou "Marcas"
     const marcas = data.marcas || data.Marcas;
     if (marcas && Array.isArray(marcas)) {
-      marcasMap = {}; // Reinicia o mapa
+      marcasMap = {};
       marcas.forEach((item) => {
         const label = item.Label || item.Nome || item.Descricao;
         const code = item.Value || item.Codigo;
@@ -30,22 +29,18 @@ async function carregarMarcas() {
   }
 }
 
-// Carrega os modelos com base no código da marca selecionada e popula o datalist "modelosList"
 async function carregarModelos(marcaCode) {
   try {
     const response = await fetch(`/api/modelos?marca=${marcaCode}`);
     const data = await response.json();
     const datalist = document.getElementById("modelosList");
     datalist.innerHTML = "";
-    // O endpoint pode retornar { Modelos: [...] } ou apenas um array
     let modelos = [];
     if (data.modelos) {
-      if (Array.isArray(data.modelos)) {
-        modelos = data.modelos;
-      } else if (data.modelos.Modelos && Array.isArray(data.modelos.Modelos)) {
-        modelos = data.modelos.Modelos;
-      }
-    } else if (data.Modelos && Array.isArray(data.Modelos)) {
+      modelos = Array.isArray(data.modelos)
+        ? data.modelos
+        : data.modelos.Modelos || [];
+    } else if (Array.isArray(data.Modelos)) {
       modelos = data.Modelos;
     }
     if (modelos.length > 0) {
@@ -67,7 +62,6 @@ async function carregarModelos(marcaCode) {
   }
 }
 
-// Carrega os anos disponíveis com base no código da marca e modelo e popula o datalist "anosList"
 async function carregarAnos(marcaCode, modeloCode) {
   try {
     const response = await fetch(
@@ -78,12 +72,8 @@ async function carregarAnos(marcaCode, modeloCode) {
     datalist.innerHTML = "";
     let anos = [];
     if (data.anos) {
-      if (Array.isArray(data.anos)) {
-        anos = data.anos;
-      } else if (data.anos.Anos && Array.isArray(data.anos.Anos)) {
-        anos = data.anos.Anos;
-      }
-    } else if (data.Anos && Array.isArray(data.Anos)) {
+      anos = Array.isArray(data.anos) ? data.anos : data.anos.Anos || [];
+    } else if (Array.isArray(data.Anos)) {
       anos = data.Anos;
     }
     if (anos.length > 0) {
@@ -105,15 +95,14 @@ async function carregarAnos(marcaCode, modeloCode) {
   }
 }
 
-// Evento: Ao alterar o campo "marca", busca modelos e limpa os demais campos
 document.getElementById("marcaInput").addEventListener("change", (e) => {
   const marcaLabel = e.target.value;
   const marcaCode = marcasMap[marcaLabel.toLowerCase()];
-  // Limpa os campos de modelo e ano
   document.getElementById("modeloInput").value = "";
   document.getElementById("anoInput").value = "";
   document.getElementById("modelosList").innerHTML = "";
   document.getElementById("anosList").innerHTML = "";
+  document.getElementById("nomeMarca").value = marcaLabel; // seta campo oculto
   if (marcaCode) {
     carregarModelos(marcaCode);
   } else {
@@ -122,15 +111,14 @@ document.getElementById("marcaInput").addEventListener("change", (e) => {
   }
 });
 
-// Evento: Ao alterar o campo "modelo", busca os anos disponíveis
 document.getElementById("modeloInput").addEventListener("change", (e) => {
   const modeloLabel = e.target.value;
   const modeloCode = modelosMap[modeloLabel.toLowerCase()];
-  // Limpa o campo de ano
-  document.getElementById("anoInput").value = "";
-  document.getElementById("anosList").innerHTML = "";
   const marcaLabel = document.getElementById("marcaInput").value;
   const marcaCode = marcasMap[marcaLabel.toLowerCase()];
+  document.getElementById("anoInput").value = "";
+  document.getElementById("anosList").innerHTML = "";
+  document.getElementById("nomeModelo").value = modeloLabel;
   if (marcaCode && modeloCode) {
     carregarAnos(marcaCode, modeloCode);
   } else {
@@ -138,7 +126,11 @@ document.getElementById("modeloInput").addEventListener("change", (e) => {
   }
 });
 
-// Evento: Ao submeter o formulário, consulta o histórico e exibe o resultado
+document.getElementById("anoInput").addEventListener("change", (e) => {
+  const anoLabel = e.target.value;
+  document.getElementById("nomeAno").value = anoLabel;
+});
+
 document
   .getElementById("consultaForm")
   .addEventListener("submit", async (e) => {
@@ -148,11 +140,11 @@ document
     const anoLabel = document.getElementById("anoInput").value;
     const marcaCode = marcasMap[marcaLabel.toLowerCase()];
     const modeloCode = modelosMap[modeloLabel.toLowerCase()];
-    // Se algum valor estiver ausente, alerta o usuário
     if (!marcaCode || !modeloCode || !anoLabel) {
       alert("Por favor, selecione marca, modelo e ano.");
       return;
     }
+
     try {
       const response = await fetch(
         `/api/historico?marca=${marcaCode}&modelo=${modeloCode}&ano=${encodeURIComponent(
@@ -179,7 +171,6 @@ document
     }
   });
 
-// Função para limpar todos os campos e o resultado
 function limparCampos() {
   document.getElementById("consultaForm").reset();
   document.getElementById("modelosList").innerHTML = "";
@@ -187,10 +178,11 @@ function limparCampos() {
   document.getElementById("modeloInput").disabled = true;
   document.getElementById("anoInput").disabled = true;
   document.getElementById("resultado").innerHTML = "";
+  document.getElementById("nomeMarca").value = "";
+  document.getElementById("nomeModelo").value = "";
+  document.getElementById("nomeAno").value = "";
 }
 
-// Vincula o evento de clique do botão "Limpar Campos"
 document.getElementById("limparCampos").addEventListener("click", limparCampos);
 
-// Carrega as marcas assim que a página carregar
 window.addEventListener("load", carregarMarcas);
