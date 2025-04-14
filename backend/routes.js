@@ -41,11 +41,11 @@ async function fetchTabelaReferenciaPadrao() {
   }
 }
 
-async function fetchUltimas12Tabelas() {
+async function fetchUltimas24Tabelas() {
   try {
     const response = await axios.post(URL_TABELA_REFERENCIA, {}, axiosConfig);
     if (Array.isArray(response.data)) {
-      return response.data.slice(0, 12);
+      return response.data.slice(0, 24);
     }
     return [];
   } catch (error) {
@@ -159,7 +159,7 @@ router.get("/historico", async (req, res) => {
       .status(500)
       .json({ error: "Não foi possível obter a tabela de referência." });
 
-  const tabelas = await fetchUltimas12Tabelas();
+  const tabelas = await fetchUltimas24Tabelas();
   if (!tabelas.length)
     return res
       .status(500)
@@ -222,8 +222,26 @@ router.get("/historico", async (req, res) => {
 
 router.get("/dashboard/:marca/:modelo", async (req, res) => {
   const { marca, modelo } = req.params;
+  const { ano } = req.query;
   try {
-    const historico = await getHistoricoByMarcaModeloFromDB(marca, modelo);
+    let historico;
+    if (ano) {
+      historico = await new Promise((resolve, reject) => {
+        const query = `
+          SELECT data_consulta as referencia, preco
+          FROM historico_precos
+          WHERE codigoMarca = ? AND codigoModelo = ? AND nomeAno = ?
+          ORDER BY data_consulta ASC
+        `;
+        db.all(query, [marca, modelo, ano], (err, rows) => {
+          if (err) return reject(err);
+          resolve(rows);
+        });
+      });
+    } else {
+      historico = await getHistoricoByMarcaModeloFromDB(marca, modelo);
+    }
+
     if (!historico || historico.length === 0) {
       return res.status(404).json({ error: "Sem histórico encontrado." });
     }

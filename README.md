@@ -7,4 +7,4 @@ Key features:
 - Automated price monitoring
 - Historical price tracking
 - Price trend analysis
-- Support for cars, motorcycles, and trucks
+- Support for cars

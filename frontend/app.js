@@ -157,7 +157,7 @@ document
       const data = await response.json();
       const resultadoDiv = document.getElementById("resultado");
       resultadoDiv.innerHTML =
-        "<h2>Histórico de Preços (últimos 12 meses):</h2>";
+        "<h2>Histórico de Preços (últimos 24 meses):</h2>";
       if (data.historico && data.historico.length > 0) {
         const ul = document.createElement("ul");
         data.historico.forEach((item) => {

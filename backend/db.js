@@ -143,10 +143,16 @@ function getHistoricoByMarcaModelo(codigoMarca, codigoModelo) {
   });
 }
 
+// ✅ Corrigido: inclui nomeMarca, nomeModelo e nomeAno
 function getHistoricoByMarcaModeloFromDB(marca, modelo) {
   return new Promise((resolve, reject) => {
     const query = `
-      SELECT data_consulta as referencia, preco
+      SELECT 
+        data_consulta AS referencia,
+        preco,
+        nomeMarca,
+        nomeModelo,
+        nomeAno
       FROM historico_precos
       WHERE codigoMarca = ? AND codigoModelo = ?
       ORDER BY data_consulta ASC
