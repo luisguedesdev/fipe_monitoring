@@ -1,7 +1,3 @@
-// utils.js
-
-// Função para extrair ano e código do combustível de uma string.
-// Aceita formato "2016-3" ou "2016 Diesel" (considera Diesel → 3, Gasolina → 1)
 function parseAno(anoStr) {
   anoStr = anoStr.trim();
   if (anoStr.includes("-")) {

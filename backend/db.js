@@ -1,7 +1,7 @@
 const sqlite3 = require("sqlite3").verbose();
 const fs = require("fs");
 
-// Garante que a pasta ./data existe
+
 const DB_DIR = "./data";
 if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR);
@@ -143,7 +143,7 @@ function getHistoricoByMarcaModelo(codigoMarca, codigoModelo) {
   });
 }
 
-// ✅ Corrigido: inclui nomeMarca, nomeModelo e nomeAno
+
 function getHistoricoByMarcaModeloFromDB(marca, modelo) {
   return new Promise((resolve, reject) => {
     const query = `
