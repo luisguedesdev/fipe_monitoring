@@ -3,51 +3,92 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Consulta FIPE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIPE Monitoring - Consulta de Preços</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 
 <body>
-  <nav>
-    <a href="dashboard.html" class="btn-link">Ir para o Dashboard</a>
-  </nav>
+  <div class="container">
+    <nav>
+      <a href="dashboard.html" class="btn-link">
+        <i class="fas fa-chart-line"></i>
+        Dashboard Interativo
+      </a>
+      <a href="todos.html" class="btn-link">
+        <i class="fas fa-database"></i>
+        Ver Registros
+      </a>
+    </nav>
 
-  <h1>Consulta FIPE</h1>
+    <header>
+      <h1><i class="fas fa-car"></i> FIPE Monitoring</h1>
+      <p style="text-align: center; color: #666; font-size: 1.1rem;">
+        Monitore preços de veículos com dados históricos dos últimos 12 meses
+      </p>
+    </header>
 
-  <form id="consultaForm">
-    <div>
-      <label for="marcaInput">Marca:</label>
-      <input type="text" id="marcaInput" name="marca" list="marcasList" autocomplete="off"
-        placeholder="Selecione ou digite a marca">
-      <datalist id="marcasList"></datalist>
+    <div class="card">
+      <h2><i class="fas fa-search"></i> Consultar Histórico de Preços</h2>
+
+      <form id="consultaForm">
+        <div class="form-row">
+          <div class="form-col">
+            <label for="marcaInput">
+              <i class="fas fa-tags"></i> Marca do Veículo
+            </label>
+            <input type="text" id="marcaInput" name="marca" list="marcasList" autocomplete="off"
+              placeholder="Digite ou selecione a marca">
+            <datalist id="marcasList"></datalist>
+          </div>
+
+          <div class="form-col">
+            <label for="modeloInput">
+              <i class="fas fa-car-side"></i> Modelo do Veículo
+            </label>
+            <input type="text" id="modeloInput" name="modelo" list="modelosList" autocomplete="off"
+              placeholder="Selecione primeiro a marca" disabled>
+            <datalist id="modelosList"></datalist>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label for="anoInput">
+              <i class="fas fa-calendar"></i> Ano e Combustível
+            </label>
+            <input type="text" id="anoInput" name="ano" list="anosList" autocomplete="off"
+              placeholder="Selecione primeiro o modelo" disabled>
+            <datalist id="anosList"></datalist>
+          </div>
+        </div>
+
+        <input type="hidden" id="nomeMarca" name="nomeMarca">
+        <input type="hidden" id="nomeModelo" name="nomeModelo">
+        <input type="hidden" id="nomeAno" name="nomeAno">
+
+        <div class="form-row">
+          <div class="form-col">
+            <button type="submit">
+              <i class="fas fa-search"></i> Consultar Histórico
+            </button>
+          </div>
+          <div class="form-col">
+            <button type="button" id="limparCampos" class="secondary">
+              <i class="fas fa-eraser"></i> Limpar Campos
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
 
-    <div>
-      <label for="modeloInput">Modelo:</label>
-      <input type="text" id="modeloInput" name="modelo" list="modelosList" autocomplete="off"
-        placeholder="Selecione ou digite o modelo" disabled>
-      <datalist id="modelosList"></datalist>
+    <div id="loading" class="loading" style="display: none;">
+      <i class="fas fa-spinner fa-spin"></i> Buscando dados históricos...
     </div>
 
-    <div>
-      <label for="anoInput">Ano Modelo:</label>
-      <input type="text" id="anoInput" name="ano" list="anosList" autocomplete="off"
-        placeholder="Selecione ou digite o ano" disabled>
-      <datalist id="anosList"></datalist>
-    </div>
-
-    
-    <input type="hidden" id="nomeMarca" name="nomeMarca">
-    <input type="hidden" id="nomeModelo" name="nomeModelo">
-    <input type="hidden" id="nomeAno" name="nomeAno">
-
-    <div>
-      <button type="submit">Consultar Histórico</button>
-      <button type="button" id="limparCampos">Limpar Campos</button>
-    </div>
-  </form>
-
-  <div id="resultado"></div>
+    <div id="resultado"></div>
+  </div>
 
   <script src="app.js"></script>
 </body>

@@ -3,37 +3,116 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard FIPE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard FIPE - Análise Interativa</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
   <script src="dashboard.js" defer></script>
 </head>
 
 <body>
-  <nav>
-    <a href="index.html" class="btn-link">⬅ Voltar para a página inicial</a>
-  </nav>
+  <div class="container">
+    <nav>
+      <a href="index.html" class="btn-link">
+        <i class="fas fa-arrow-left"></i>
+        Voltar à Consulta
+      </a>
+      <a href="todos.html" class="btn-link">
+        <i class="fas fa-database"></i>
+        Ver Registros
+      </a>
+    </nav>
 
-  <h1>Dashboard de Preços FIPE</h1>
+    <header>
+      <h1><i class="fas fa-chart-line"></i> Dashboard Interativo FIPE</h1>
+      <p style="text-align: center; color: #666; font-size: 1.1rem;">
+        Análise visual de tendências e previsões de preços
+      </p>
+    </header>
 
-  <div>
-    <label for="veiculosSelect">Selecione um veículo:</label>
-    <select id="veiculosSelect"></select>
+    <div class="card">
+      <h2><i class="fas fa-filter"></i> Filtros de Análise</h2>
+
+      <div class="form-row">
+        <div class="form-col">
+          <label for="veiculosSelect">
+            <i class="fas fa-car"></i> Selecione um Veículo
+          </label>
+          <select id="veiculosSelect">
+            <option value="">Carregando veículos...</option>
+          </select>
+        </div>
+
+        <div class="form-col">
+          <label for="anosSelect">
+            <i class="fas fa-calendar"></i> Ano do Veículo
+          </label>
+          <select id="anosSelect">
+            <option value="">Selecione primeiro um veículo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-col">
+          <label for="tipoGrafico">
+            <i class="fas fa-chart-bar"></i> Tipo de Gráfico
+          </label>
+          <select id="tipoGrafico">
+            <option value="line">Linha (Tendência)</option>
+            <option value="bar">Barras (Comparação)</option>
+            <option value="area">Área (Volume)</option>
+          </select>
+        </div>
+
+        <div class="form-col">
+          <label for="mesFuturo">
+            <i class="fas fa-crystal-ball"></i> Meses à Frente (Previsão)
+          </label>
+          <input type="number" id="mesFuturo" value="3" min="1" max="12" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-col">
+          <button id="btnPrever">
+            <i class="fas fa-chart-line"></i> Gerar Análise
+          </button>
+        </div>
+        <div class="form-col">
+          <button id="btnComparar" class="secondary">
+            <i class="fas fa-balance-scale"></i> Comparar Veículos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+      <i class="fas fa-spinner fa-spin"></i> Gerando análise...
+    </div>
+
+    <div id="estatisticas" style="display: none;"></div>
+
+    <div class="chart-container" id="chartContainer" style="display: none;">
+      <h2><i class="fas fa-chart-area"></i> Análise de Preços</h2>
+      <canvas id="grafico"></canvas>
+
+      <div class="chart-controls" style="margin-top: 20px; text-align: center;">
+        <button onclick="exportChart()" class="secondary">
+          <i class="fas fa-download"></i> Exportar Gráfico
+        </button>
+        <button onclick="toggleFullscreen()" class="secondary">
+          <i class="fas fa-expand"></i> Tela Cheia
+        </button>
+      </div>
+    </div>
+
+    <div id="previsaoInfo" style="display: none;"></div>
+
+    <div id="alertas" style="display: none;"></div>
   </div>
-
-  <div>
-    <label for="anosSelect">Ano do veículo:</label>
-    <select id="anosSelect"></select>
-  </div>
-
-  <div>
-    <label for="mesFuturo">Meses à frente:</label>
-    <input type="number" id="mesFuturo" value="1" min="1" />
-    <button id="btnPrever">Gerar Gráfico</button>
-  </div>
-
-  <canvas id="grafico" width="800" height="400"></canvas>
-  <p id="previsaoTexto"></p>
 </body>
 
 </html>

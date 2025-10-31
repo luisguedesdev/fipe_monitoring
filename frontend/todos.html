@@ -3,52 +3,247 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Todos os Registros</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registros do Banco - FIPE Monitoring</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script>
+    let todosRegistros = [];
+    let filtroAtual = '';
+    let ordenacaoAtual = { campo: 'data_consulta', direcao: 'desc' };
+
+    function formatCurrency(value) {
+      if (!value || value === 'N/D') return value;
+      const numero = parseFloat(value.replace(/[R$\.\s]/g, '').replace(',', '.'));
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(numero);
+    }
+
+    function formatDate(dateStr) {
+      try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+      } catch {
+        return dateStr;
+      }
+    }
+
+    function filtrarRegistros() {
+      const filtro = document.getElementById('filtroInput').value.toLowerCase();
+      filtroAtual = filtro;
+      renderizarTabela();
+    }
+
+    function ordenarPor(campo) {
+      if (ordenacaoAtual.campo === campo) {
+        ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
+      } else {
+        ordenacaoAtual.campo = campo;
+        ordenacaoAtual.direcao = 'asc';
+      }
+      renderizarTabela();
+    }
+
+    function renderizarTabela() {
+      const lista = document.getElementById("lista");
+
+      if (!todosRegistros || todosRegistros.length === 0) {
+        lista.innerHTML = `
+          <div class="card">
+            <p style="text-align: center; color: #666; font-size: 1.1rem;">
+              <i class="fas fa-database"></i> Nenhum registro encontrado no banco.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      // Filtrar registros
+      let registrosFiltrados = todosRegistros.filter(r => {
+        if (!filtroAtual) return true;
+        return (r.nomeMarca && r.nomeMarca.toLowerCase().includes(filtroAtual)) ||
+          (r.nomeModelo && r.nomeModelo.toLowerCase().includes(filtroAtual)) ||
+          (r.nomeAno && r.nomeAno.toLowerCase().includes(filtroAtual)) ||
+          (r.preco && r.preco.toLowerCase().includes(filtroAtual));
+      });
+
+      // Ordenar registros
+      registrosFiltrados.sort((a, b) => {
+        let valorA = a[ordenacaoAtual.campo] || '';
+        let valorB = b[ordenacaoAtual.campo] || '';
+
+        // Ordenação especial para preços
+        if (ordenacaoAtual.campo === 'preco') {
+          valorA = parseFloat(valorA.replace(/[R$\.\s]/g, '').replace(',', '.')) || 0;
+          valorB = parseFloat(valorB.replace(/[R$\.\s]/g, '').replace(',', '.')) || 0;
+        }
+
+        // Ordenação especial para datas
+        if (ordenacaoAtual.campo === 'data_consulta') {
+          valorA = new Date(valorA).getTime();
+          valorB = new Date(valorB).getTime();
+        }
+
+        if (ordenacaoAtual.direcao === 'asc') {
+          return valorA > valorB ? 1 : -1;
+        } else {
+          return valorA < valorB ? 1 : -1;
+        }
+      });
+
+      const getSortIcon = (campo) => {
+        if (ordenacaoAtual.campo !== campo) return 'fa-sort';
+        return ordenacaoAtual.direcao === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+      };
+
+      // Calcular estatísticas
+      const totalRegistros = registrosFiltrados.length;
+      const marcasUnicas = new Set(registrosFiltrados.map(r => r.nomeMarca)).size;
+      const modelosUnicos = new Set(registrosFiltrados.map(r => `${r.nomeMarca}-${r.nomeModelo}`)).size;
+
+      const precos = registrosFiltrados
+        .map(r => parseFloat(r.preco.replace(/[R$\.\s]/g, '').replace(',', '.')))
+        .filter(p => !isNaN(p));
+
+      const precoMedio = precos.length > 0 ? precos.reduce((a, b) => a + b, 0) / precos.length : 0;
+
+      lista.innerHTML = `
+        <div class="card">
+          <h2><i class="fas fa-chart-bar"></i> Estatísticas dos Dados</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">${totalRegistros}</div>
+              <div class="stat-label">Total de Registros</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${marcasUnicas}</div>
+              <div class="stat-label">Marcas Diferentes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${modelosUnicos}</div>
+              <div class="stat-label">Modelos Diferentes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${formatCurrency(precoMedio.toString().replace('.', ','))}</div>
+              <div class="stat-label">Preço Médio</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2><i class="fas fa-table"></i> Registros do Banco de Dados</h2>
+            <div style="display: flex; gap: 15px; align-items: center;">
+              <div>
+                <label for="filtroInput" style="margin-right: 10px;">
+                  <i class="fas fa-search"></i> Filtrar:
+                </label>
+                <input type="text" id="filtroInput" placeholder="Pesquisar marca, modelo, ano..." 
+                       value="${filtroAtual}" onkeyup="filtrarRegistros()" 
+                       style="width: 250px; margin: 0;">
+              </div>
+              <button onclick="exportarCSV()" class="secondary">
+                <i class="fas fa-download"></i> Exportar CSV
+              </button>
+            </div>
+          </div>
+          
+          <div style="overflow-x: auto;">
+            <table style="margin: 0;">
+              <thead>
+                <tr>
+                  <th onclick="ordenarPor('id')" style="cursor: pointer;">
+                    ID <i class="fas ${getSortIcon('id')}"></i>
+                  </th>
+                  <th onclick="ordenarPor('nomeMarca')" style="cursor: pointer;">
+                    Marca <i class="fas ${getSortIcon('nomeMarca')}"></i>
+                  </th>
+                  <th onclick="ordenarPor('nomeModelo')" style="cursor: pointer;">
+                    Modelo <i class="fas ${getSortIcon('nomeModelo')}"></i>
+                  </th>
+                  <th onclick="ordenarPor('nomeAno')" style="cursor: pointer;">
+                    Ano <i class="fas ${getSortIcon('nomeAno')}"></i>
+                  </th>
+                  <th onclick="ordenarPor('preco')" style="cursor: pointer;">
+                    Preço <i class="fas ${getSortIcon('preco')}"></i>
+                  </th>
+                  <th onclick="ordenarPor('data_consulta')" style="cursor: pointer;">
+                    Data de Consulta <i class="fas ${getSortIcon('data_consulta')}"></i>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                ${registrosFiltrados.map((r) => {
+        const precoFormatado = formatCurrency(r.preco);
+        const dataFormatada = formatDate(r.data_consulta);
+
+        return `
+                    <tr>
+                      <td>${r.id}</td>
+                      <td><strong>${r.nomeMarca || r.codigoMarca}</strong></td>
+                      <td>${r.nomeModelo || r.codigoModelo}</td>
+                      <td>${r.nomeAno || r.anoModelo}</td>
+                      <td><strong style="color: #27ae60;">${precoFormatado}</strong></td>
+                      <td>${dataFormatada}</td>
+                    </tr>
+                  `;
+      }).join('')}
+              </tbody>
+            </table>
+          </div>
+          
+          <div style="margin-top: 20px; text-align: center; color: #666;">
+            Mostrando ${registrosFiltrados.length} de ${todosRegistros.length} registros
+          </div>
+        </div>
+      `;
+    }
+
+    function exportarCSV() {
+      const csv = [
+        ['ID', 'Marca', 'Modelo', 'Ano', 'Preço', 'Data de Consulta'].join(','),
+        ...todosRegistros.map(r => [
+          r.id,
+          `"${r.nomeMarca || r.codigoMarca}"`,
+          `"${r.nomeModelo || r.codigoModelo}"`,
+          `"${r.nomeAno || r.anoModelo}"`,
+          `"${r.preco}"`,
+          `"${r.data_consulta}"`
+        ].join(','))
+      ].join('\\n');
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fipe_registros_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       const lista = document.getElementById("lista");
+      lista.innerHTML = `
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Carregando registros do banco...
+        </div>
+      `;
 
       try {
         const res = await fetch("/api/todos-registros");
         const data = await res.json();
-
-        if (!data.registros || data.registros.length === 0) {
-          lista.innerHTML = "<p>Nenhum registro encontrado no banco.</p>";
-          return;
-        }
-
-        const table = document.createElement("table");
-        table.border = "1";
-        table.cellPadding = "8";
-        table.innerHTML = `
-          <tr>
-            <th>ID</th>
-            <th>Marca</th>
-            <th>Modelo</th>
-            <th>Ano</th>
-            <th>Preço</th>
-            <th>Referência</th>
-          </tr>
-        `;
-
-        data.registros.forEach((r) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${r.id}</td>
-            <td>${r.nomeMarca || r.codigoMarca}</td>
-            <td>${r.nomeModelo || r.codigoModelo}</td>
-            <td>${r.nomeAno || r.anoModelo}</td>
-            <td>${r.preco}</td>
-            <td>${r.data_consulta}</td>
-          `;
-          table.appendChild(row);
-        });
-
-        lista.innerHTML = "";
-        lista.appendChild(table);
+        todosRegistros = data.registros || [];
+        renderizarTabela();
       } catch (err) {
-        lista.innerHTML = "<p>Erro ao buscar registros.</p>";
+        lista.innerHTML = `
+          <div class="card">
+            <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 10px; text-align: center;">
+              <i class="fas fa-exclamation-circle"></i> Erro ao buscar registros. Tente recarregar a página.
+            </div>
+          </div>
+        `;
         console.error("Erro ao carregar registros:", err);
       }
     });
@@ -56,12 +251,25 @@
 </head>
 
 <body>
-  <nav>
-    <a href="index.html" class="btn-link">⬅ Voltar</a>
-  </nav>
+  <div class="container">
+    <nav>
+      <a href="index.html" class="btn-link">
+        <i class="fas fa-arrow-left"></i> Voltar à Consulta
+      </a>
+      <a href="dashboard.html" class="btn-link">
+        <i class="fas fa-chart-line"></i> Dashboard
+      </a>
+    </nav>
 
-  <h1>Todos os Registros no Banco</h1>
-  <div id="lista">Carregando registros...</div>
+    <header>
+      <h1><i class="fas fa-database"></i> Registros do Banco de Dados</h1>
+      <p style="text-align: center; color: #666; font-size: 1.1rem;">
+        Visualize todos os dados históricos armazenados no sistema
+      </p>
+    </header>
+
+    <div id="lista">Carregando registros...</div>
+  </div>
 </body>
 
 </html>
