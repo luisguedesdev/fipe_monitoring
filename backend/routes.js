@@ -5,12 +5,14 @@ const router = express.Router();
 // Imports locais
 const logger = require("./config/logger");
 const cache = require("./config/cache");
+const { fipeRequestManager } = require("./config/fipeRequestManager");
 const { parseAno, validateFipeParams } = require("./utils");
 const {
   insertHistorico,
   recordExists,
   getHistoricoByMarcaModeloFromDB,
   executeQuery,
+  healthCheck,
   isProduction,
 } = require("./db");
 
@@ -33,16 +35,6 @@ const FIPE_URLS = {
   }/ConsultarValorComTodosParametros`,
 };
 
-// Configuração padrão do axios
-const axiosConfig = {
-  headers: {
-    "Content-Type": "application/json",
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-  },
-  timeout: parseInt(process.env.REQUEST_TIMEOUT) || 30000,
-};
-
 // Middleware para validação de parâmetros básicos
 const validateBasicParams = (req, res, next) => {
   const { tipoVeiculo } = req.query;
@@ -57,25 +49,25 @@ const validateBasicParams = (req, res, next) => {
   next();
 };
 
-// Função para fazer requisições com retry
-async function makeRequestWithRetry(url, data, retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await axios.post(url, data, axiosConfig);
-      return response;
-    } catch (error) {
-      logger.warn(`Tentativa ${i + 1}/${retries} falhou para ${url}:`, {
-        error: error.message,
-        data,
-      });
-
-      if (i === retries - 1) throw error;
-
-      // Backoff exponencial
-      await new Promise((resolve) =>
-        setTimeout(resolve, Math.pow(2, i) * 1000)
+/**
+ * Wrapper para fazer requisições usando o gerenciador
+ */
+async function makeFipeRequest(url, data) {
+  try {
+    return await fipeRequestManager.request(url, data);
+  } catch (error) {
+    // Tratar erros específicos
+    if (error.code === "CIRCUIT_BREAKER_OPEN") {
+      const err = new Error(
+        "Serviço temporariamente indisponível. Tente novamente em alguns minutos."
       );
+      err.status = 503;
+      err.retryAfter = 60;
+      throw err;
     }
+
+    // Passar erro original
+    throw error;
   }
 }
 
@@ -89,10 +81,7 @@ async function fetchTabelaReferenciaPadrao() {
   }
 
   try {
-    const response = await makeRequestWithRetry(
-      FIPE_URLS.TABELA_REFERENCIA,
-      {}
-    );
+    const response = await makeFipeRequest(FIPE_URLS.TABELA_REFERENCIA, {});
 
     if (Array.isArray(response.data) && response.data.length > 0) {
       const codigo = String(response.data[0].Codigo);
@@ -117,10 +106,7 @@ async function fetchUltimas24Tabelas() {
   }
 
   try {
-    const response = await makeRequestWithRetry(
-      FIPE_URLS.TABELA_REFERENCIA,
-      {}
-    );
+    const response = await makeFipeRequest(FIPE_URLS.TABELA_REFERENCIA, {});
 
     if (Array.isArray(response.data)) {
       const tabelas = response.data.slice(0, 24);
@@ -155,7 +141,7 @@ router.get("/marcas", validateBasicParams, async (req, res) => {
       });
     }
 
-    const response = await makeRequestWithRetry(FIPE_URLS.MARCAS, {
+    const response = await makeFipeRequest(FIPE_URLS.MARCAS, {
       codigoTabelaReferencia,
       codigoTipoVeiculo: tipoVeiculo,
     });
@@ -168,14 +154,25 @@ router.get("/marcas", validateBasicParams, async (req, res) => {
     );
     res.json(result);
   } catch (error) {
+    const status = error.status || 500;
+    const retryAfter = error.retryAfter;
+
     logger.error("Erro ao buscar marcas:", {
       error: error.message,
+      status,
       tipoVeiculo,
-      stack: error.stack,
     });
-    res.status(500).json({
-      error: "Erro ao buscar marcas. Tente novamente mais tarde.",
-    });
+
+    const response = {
+      error:
+        error.message || "Erro ao buscar marcas. Tente novamente mais tarde.",
+    };
+
+    if (retryAfter) {
+      response.retryAfter = retryAfter;
+    }
+
+    res.status(status).json(response);
   }
 });
 
@@ -215,7 +212,7 @@ router.get("/modelos", validateBasicParams, async (req, res) => {
       });
     }
 
-    const response = await makeRequestWithRetry(FIPE_URLS.MODELOS, {
+    const response = await makeFipeRequest(FIPE_URLS.MODELOS, {
       codigoTabelaReferencia,
       codigoTipoVeiculo: tipoVeiculo,
       codigoMarca: marca,
@@ -230,14 +227,18 @@ router.get("/modelos", validateBasicParams, async (req, res) => {
     logger.info(`${result.modelos.length} modelos obtidos para marca ${marca}`);
     res.json(result);
   } catch (error) {
+    const status = error.status || 500;
+
     logger.error("Erro ao buscar modelos:", {
       error: error.message,
+      status,
       marca,
       tipoVeiculo,
-      stack: error.stack,
     });
-    res.status(500).json({
-      error: "Erro ao buscar modelos. Tente novamente mais tarde.",
+
+    res.status(status).json({
+      error:
+        error.message || "Erro ao buscar modelos. Tente novamente mais tarde.",
     });
   }
 });
@@ -286,7 +287,7 @@ router.get("/anos", validateBasicParams, async (req, res) => {
       codigoModelo: modelo,
     };
 
-    const response = await makeRequestWithRetry(FIPE_URLS.ANOS, payload);
+    const response = await makeFipeRequest(FIPE_URLS.ANOS, payload);
     const result = { anos: response.data };
 
     cache.set(cacheKey, result, 3600); // Cache por 1 hora
@@ -296,15 +297,19 @@ router.get("/anos", validateBasicParams, async (req, res) => {
     );
     res.json(result);
   } catch (error) {
+    const status = error.status || 500;
+
     logger.error("Erro ao buscar anos:", {
       error: error.message,
+      status,
       marca,
       modelo,
       tipoVeiculo,
-      stack: error.stack,
     });
-    res.status(500).json({
-      error: "Erro ao buscar anos. Tente novamente mais tarde.",
+
+    res.status(status).json({
+      error:
+        error.message || "Erro ao buscar anos. Tente novamente mais tarde.",
     });
   }
 });
@@ -320,6 +325,7 @@ router.get("/historico", validateBasicParams, async (req, res) => {
     nomeMarca,
     nomeModelo,
     nomeAno,
+    periodo = 24, // Padrão: 24 meses
   } = req.query;
 
   if (!marca || !modelo || !ano) {
@@ -331,6 +337,12 @@ router.get("/historico", validateBasicParams, async (req, res) => {
   marca = Number(marca);
   modelo = Number(modelo);
   tipoVeiculo = Number(tipoVeiculo);
+  periodo = Number(periodo);
+
+  // Validar período
+  if (![6, 12, 24].includes(periodo)) {
+    periodo = 24; // Padrão se valor inválido
+  }
 
   if (isNaN(marca) || marca <= 0 || isNaN(modelo) || modelo <= 0) {
     return res.status(400).json({
@@ -339,7 +351,11 @@ router.get("/historico", validateBasicParams, async (req, res) => {
   }
 
   const { anoModelo, codigoTipoCombustivel } = parseAno(ano);
-  const cacheKey = cache.generateHistoricoKey(marca, modelo, ano);
+  const cacheKey = `${cache.generateHistoricoKey(
+    marca,
+    modelo,
+    ano
+  )}_${periodo}m`;
 
   try {
     // Verificar cache primeiro
@@ -366,15 +382,21 @@ router.get("/historico", validateBasicParams, async (req, res) => {
       });
     }
 
+    // Limitar tabelas baseado no período solicitado
+    const tabelasFiltradas = tabelas.slice(0, periodo);
+
     let historico = [];
     let processedCount = 0;
+    let failedCount = 0;
 
     logger.info(
-      `Processando ${tabelas.length} tabelas para histórico de ${marca}-${modelo}-${ano}`
+      `Processando ${tabelasFiltradas.length} tabelas (${periodo} meses) para histórico de ${marca}-${modelo}-${ano}`
     );
 
-    for (const tabela of tabelas) {
-      const payload = {
+    // Preparar batch de requisições
+    const batchRequests = tabelasFiltradas.map((tabela) => ({
+      url: FIPE_URLS.PRECO,
+      data: {
         codigoTabelaReferencia: String(tabela.Codigo),
         codigoTipoVeiculo: tipoVeiculo,
         codigoMarca: marca,
@@ -387,11 +409,23 @@ router.get("/historico", validateBasicParams, async (req, res) => {
         nomeMarca: nomeMarca || "",
         nomeModelo: nomeModelo || "",
         nomeAno: nomeAno || "",
-      };
+      },
+      tabela,
+    }));
 
-      try {
-        const response = await makeRequestWithRetry(FIPE_URLS.PRECO, payload);
-        const preco = response.data.Valor;
+    // Processar em batch usando o gerenciador
+    const batchResults = await fipeRequestManager.requestBatch(
+      batchRequests.map((r) => ({ url: r.url, data: r.data }))
+    );
+
+    // Processar resultados
+    for (let i = 0; i < batchResults.length; i++) {
+      const result = batchResults[i];
+      const tabela = batchRequests[i].tabela;
+      const payload = batchRequests[i].data;
+
+      if (result.success) {
+        const preco = result.data.Valor;
         const valor = preco && preco.trim() !== "" ? preco.trim() : "N/D";
 
         if (valor !== "N/D") {
@@ -412,11 +446,12 @@ router.get("/historico", validateBasicParams, async (req, res) => {
         });
 
         processedCount++;
-      } catch (err) {
+      } else {
         logger.warn(
           `Erro na consulta para tabela ${tabela.Codigo}:`,
-          err.message
+          result.error
         );
+        failedCount++;
         // Continuar com as próximas tabelas mesmo se uma falhar
       }
     }
@@ -427,7 +462,7 @@ router.get("/historico", validateBasicParams, async (req, res) => {
             error:
               "Preço não disponível para essa combinação nas tabelas de referência atuais.",
           }
-        : { historico };
+        : { historico, periodo, totalTabelas: tabelasFiltradas.length };
 
     // Cache apenas se tivemos sucesso
     if (historico.length > 0) {
@@ -435,19 +470,24 @@ router.get("/historico", validateBasicParams, async (req, res) => {
     }
 
     logger.info(
-      `Histórico processado: ${processedCount}/${tabelas.length} tabelas para ${marca}-${modelo}-${ano}`
+      `Histórico processado: ${processedCount}/${tabelasFiltradas.length} tabelas (${failedCount} falhas) para ${marca}-${modelo}-${ano} (${periodo} meses)`
     );
     res.json(result);
   } catch (error) {
+    const status = error.status || 500;
+
     logger.error("Erro ao buscar histórico:", {
       error: error.message,
+      status,
       marca,
       modelo,
       ano,
-      stack: error.stack,
     });
-    res.status(500).json({
-      error: "Erro ao buscar histórico. Tente novamente mais tarde.",
+
+    res.status(status).json({
+      error:
+        error.message ||
+        "Erro ao buscar histórico. Tente novamente mais tarde.",
     });
   }
 });
@@ -598,5 +638,37 @@ function preverPreco(historico) {
     return "0.00";
   }
 }
+
+router.get("/db-health", async (req, res) => {
+  try {
+    const result = await healthCheck();
+    res.json(result);
+  } catch (error) {
+    logger.error("Erro no health check:", error);
+    res.status(500).json({
+      ok: false,
+      code: "INTERNAL_ERROR",
+      message: "Health check failed",
+    });
+  }
+});
+
+// Rota para estatísticas do gerenciador de requisições FIPE
+router.get("/fipe-stats", async (req, res) => {
+  try {
+    const stats = fipeRequestManager.getStats();
+    res.json({
+      ok: true,
+      stats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error("Erro ao obter estatísticas:", error);
+    res.status(500).json({
+      ok: false,
+      error: "Erro ao obter estatísticas",
+    });
+  }
+});
 
 module.exports = router;

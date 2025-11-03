@@ -194,6 +194,7 @@ document
     const marcaLabel = document.getElementById("marcaInput").value;
     const modeloLabel = document.getElementById("modeloInput").value;
     const anoLabel = document.getElementById("anoInput").value;
+    const periodo = document.getElementById("periodoSelect").value;
     const marcaCode = marcasMap[marcaLabel.toLowerCase()];
     const modeloCode = modelosMap[modeloLabel.toLowerCase()];
 
@@ -207,7 +208,7 @@ document
       const response = await fetch(
         `/api/historico?marca=${marcaCode}&modelo=${modeloCode}&ano=${encodeURIComponent(
           anoLabel
-        )}&nomeMarca=${encodeURIComponent(
+        )}&periodo=${periodo}&nomeMarca=${encodeURIComponent(
           marcaLabel
         )}&nomeModelo=${encodeURIComponent(
           modeloLabel
@@ -235,7 +236,10 @@ document
 
         resultadoDiv.innerHTML = `
         <div class="card">
-          <h2><i class="fas fa-chart-line"></i> Histórico de Preços - ${marcaLabel} ${modeloLabel} ${anoLabel}</h2>
+          <h2>
+            <i class="fas fa-chart-line"></i> Histórico de Preços - ${marcaLabel} ${modeloLabel} ${anoLabel}
+            <span style="font-size: 0.8em; color: #666; font-weight: normal;"> (${periodo} meses)</span>
+          </h2>
           
           <div class="stats-grid">
             <div class="stat-card">

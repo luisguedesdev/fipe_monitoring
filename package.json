@@ -1,13 +1,22 @@
 {
   "name": "fipe-monitoring",
   "version": "1.0.0",
-  "description": "Sistema de monitoramento de preços FIPE para Vercel + Supabase",
+  "description": "Sistema de monitoramento de preços FIPE para Vercel + Neon",
   "main": "api/index.js",
   "scripts": {
     "dev": "cd backend && npm run dev",
     "start": "cd backend && npm start",
     "build": "echo 'Build completed'",
-    "vercel-build": "cd backend && npm install"
+    "vercel-build": "cd backend && npm install",
+    "test": "node tests/run-all.js",
+    "test:db": "node tests/database.test.js",
+    "test:neon": "node test-neon.js",
+    "setup:neon": "./setup-neon.sh",
+    "migration": "node migrations/migrate.js",
+    "migrate": "node migrations/migrate.js run",
+    "migrate:status": "node migrations/migrate.js status",
+    "migrate:rollback": "node migrations/migrate.js rollback",
+    "migrate:create": "node migrations/migrate.js create"
   },
   "dependencies": {
     "axios": "^1.8.3",
@@ -21,6 +30,9 @@
     "pg": "^8.11.3",
     "winston": "^3.11.0"
   },
+  "devDependencies": {
+    "sqlite3": "^5.1.6"
+  },
   "engines": {
     "node": "18.x"
   },
@@ -29,7 +41,8 @@
     "veiculos",
     "precos",
     "vercel",
-    "supabase",
+    "neon",
+    "postgresql",
     "nodejs"
   ],
   "author": "Luis",

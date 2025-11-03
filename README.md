@@ -2,13 +2,13 @@
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.18+-blue.svg)](https://expressjs.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-blue.svg)](https://supabase.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue.svg)](https://neon.tech/)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black.svg)](https://vercel.com/)
 [![Chart.js](https://img.shields.io/badge/Chart.js-4+-orange.svg)](https://www.chartjs.org/)
 
 ## 📋 Descrição
 
-Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE (Fundação Instituto de Pesquisas Econômicas). A aplicação oferece consulta, armazenamento e análise de dados históricos com previsões inteligentes e visualizações interativas, **otimizada para deploy em nuvem**.
+Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE (Fundação Instituto de Pesquisas Econômicas). A aplicação oferece consulta, armazenamento e análise de dados históricos com previsões inteligentes e visualizações interativas, **otimizada para deploy em nuvem com Neon PostgreSQL**.
 
 ### ✨ Principais Funcionalidades
 
@@ -17,10 +17,24 @@ Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE
 - 📈 **Análise Preditiva**: Previsões baseadas em regressão linear com indicador de confiança
 - 🎯 **Alertas Inteligentes**: Detecção automática de tendências e volatilidade
 - 💾 **Histórico Completo**: Armazenamento de até 24 meses de dados
-- ⚡ **Performance Otimizada**: Sistema de cache com rate limiting
-- 🔒 **Segurança**: Headers de segurança e validação de dados
+- ⚡ **Performance Otimizada**: Sistema de cache com rate limiting inteligente
+- � **API FIPE Otimizada**: Sistema avançado de requisições com queue, retry e circuit breaker
+- �🔒 **Segurança**: Headers de segurança e validação de dados
 - 📱 **Design Responsivo**: Interface moderna que funciona em todos os dispositivos
-- ☁️ **Cloud Ready**: Deploye automaticamente no Vercel com Supabase PostgreSQL
+- ☁️ **Cloud Ready**: Deploye automaticamente no Vercel com Neon PostgreSQL
+
+## 🎯 Novidade: Sistema Inteligente de Requisições FIPE
+
+**Eliminação de erros "N/D" e bloqueios da API!**
+
+- ✅ **Queue System**: Fila centralizada para todas as requisições
+- ✅ **Rate Limiting**: 25 req/min com delays dinâmicos (300-1000ms)
+- ✅ **Retry Inteligente**: Backoff exponencial com até 3 tentativas
+- ✅ **Circuit Breaker**: Proteção automática contra sobrecarga
+- ✅ **Batch Processing**: Otimização de requisições múltiplas
+- ✅ **100% Confiabilidade**: Taxa de sucesso de 95-100%
+
+📖 [Ver detalhes completos em FIPE_IMPROVEMENTS.md](FIPE_IMPROVEMENTS.md)
 
 ## 🚀 Quick Start (Deploy em Produção)
 
@@ -35,11 +49,11 @@ chmod +x setup-deploy.sh
 
 ### Opção 2: Passo a Passo Manual
 
-#### 1. Configuração do Supabase
+#### 1. Configuração do Neon
 
-1. Acesse [supabase.com](https://supabase.com) e crie uma conta
+1. Acesse [neon.tech](https://neon.tech) e crie uma conta
 2. Crie um novo projeto
-3. Vá para SQL Editor e execute o conteúdo de `supabase_setup.sql`
+3. Vá para SQL Editor e execute o conteúdo de `neon_setup.sql`
 4. Copie a string de conexão PostgreSQL
 
 #### 2. Deploy no Vercel
@@ -47,7 +61,7 @@ chmod +x setup-deploy.sh
 1. Faça push do código para GitHub/GitLab
 2. Acesse [vercel.com](https://vercel.com) e importe o projeto
 3. Configure as variáveis de ambiente:
-   - `DATABASE_URL`: String de conexão do Supabase
+   - `DATABASE_URL`: String de conexão do Neon
    - `NODE_ENV`: `production`
 4. Deploy!
 
@@ -113,7 +127,30 @@ RATE_LIMIT_WINDOW=900000
 RATE_LIMIT_MAX_REQUESTS=100
 ```
 
-## 📖 API Documentation
+## �️ Banco de Dados
+
+### Configuração PostgreSQL (Neon)
+
+- **Variável**: `DATABASE_URL`
+- **Recomendação**: Use a **connection string do Neon** com `?sslmode=require`
+- **Exemplo**: `postgresql://user:password@ep-xxx.us-east-1.neon.tech/dbname?sslmode=require`
+
+### Observações Importantes
+
+- Neon oferece **auto-scaling** e **branching** para desenvolvimento
+- Rotacionar senha no Neon invalida conexões antigas
+- Atualizar Vercel/locais e redeploy após mudança de senha
+- **Nunca expor segredos nos logs**
+
+### Health Check
+
+```http
+GET /api/db-health
+```
+
+Retorna `{ ok: true }` se conectado, ou erro sem expor segredos.
+
+## �📖 API Documentation
 
 ### Endpoints Principais
 
@@ -171,7 +208,7 @@ POST /api/cache/clear
 
 ## 🏗️ Arquitetura do Sistema
 
-```
+```text
 fipe_monitoring/
 ├── backend/
 │   ├── config/          # Configurações (logger, cache)

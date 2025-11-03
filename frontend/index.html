@@ -25,7 +25,7 @@
     <header>
       <h1><i class="fas fa-car"></i> FIPE Monitoring</h1>
       <p style="text-align: center; color: #666; font-size: 1.1rem;">
-        Monitore preços de veículos com dados históricos dos últimos 12 meses
+        Monitore preços de veículos com histórico de 6, 12 ou 24 meses
       </p>
     </header>
 
@@ -61,6 +61,17 @@
             <input type="text" id="anoInput" name="ano" list="anosList" autocomplete="off"
               placeholder="Selecione primeiro o modelo" disabled>
             <datalist id="anosList"></datalist>
+          </div>
+
+          <div class="form-col">
+            <label for="periodoSelect">
+              <i class="fas fa-clock"></i> Período de Histórico
+            </label>
+            <select id="periodoSelect" name="periodo">
+              <option value="6">Últimos 6 meses</option>
+              <option value="12" selected>Últimos 12 meses</option>
+              <option value="24">Últimos 24 meses</option>
+            </select>
           </div>
         </div>
 

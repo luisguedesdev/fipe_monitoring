@@ -7,27 +7,65 @@ const isProduction =
 let db;
 
 if (isProduction) {
-  // PostgreSQL para produção (Supabase)
   const { Pool } = require("pg");
 
-  db = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-    max: 20, // máximo de conexões
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is required in production");
+  }
+
+  const url = new URL(connectionString);
+  const isSSL =
+    url.searchParams.get("sslmode") === "require" ||
+    connectionString.includes("sslmode=require");
+
+  logger.info("Database config (Neon):", {
+    host: url.hostname,
+    port: url.port,
+    database: url.pathname.slice(1),
+    username: url.username,
+    ssl: isSSL,
   });
 
-  // Testar conexão
-  db.query("SELECT NOW()", (err, result) => {
-    if (err) {
-      logger.error("Erro ao conectar no PostgreSQL:", err);
-    } else {
-      logger.info("Conectado ao PostgreSQL (Supabase)");
-    }
+  db = new Pool({
+    connectionString,
+    ssl: isSSL ? { rejectUnauthorized: false } : false,
+    max: 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
   });
+
+  const connectWithRetry = async (retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const result = await db.query("SELECT 1 as ok");
+        logger.info("Connected to PostgreSQL (Neon)");
+        return result;
+      } catch (error) {
+        const isPausedError =
+          error.message.includes("paused") ||
+          error.message.includes("hibernation") ||
+          error.code === "ENETUNREACH";
+
+        if (isPausedError && i < retries - 1) {
+          const delay = Math.pow(2, i) * 250;
+          logger.warn(
+            `Database connection failed (attempt ${
+              i + 1
+            }/${retries}), retrying in ${delay}ms:`,
+            error.message
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        } else {
+          logger.error("Failed to connect to PostgreSQL:", error.message);
+          throw error;
+        }
+      }
+    }
+  };
+
+  connectWithRetry();
 } else {
   // SQLite para desenvolvimento
   const sqlite3 = require("sqlite3").verbose();
@@ -65,7 +103,10 @@ if (isProduction) {
                 });
             }
           );
-        } else if (text.toUpperCase().startsWith("SELECT")) {
+        } else if (
+          text.toUpperCase().startsWith("SELECT") ||
+          text.toUpperCase().startsWith("PRAGMA")
+        ) {
           sqliteDb.all(text, params, (err, rows) => {
             if (err) reject(err);
             else
@@ -216,8 +257,8 @@ async function recordExists(payload) {
       normalized.codigo_tabela_referencia,
     ];
 
-    const result = await db.query(query, values);
-    return result.rows.length > 0;
+    const result = await executeQuery(query, values);
+    return result && result.length > 0;
   } catch (error) {
     logger.error("Erro ao verificar se registro existe:", error);
     throw error;
@@ -311,6 +352,19 @@ async function executeQuery(query, params = []) {
   }
 }
 
+async function healthCheck() {
+  try {
+    const result = await db.query("SELECT 1 as ok");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      code: error.code,
+      message: error.message,
+    };
+  }
+}
+
 // Graceful shutdown
 process.on("SIGTERM", async () => {
   if (db && db.end) {
@@ -328,5 +382,6 @@ module.exports = {
   getHistoricoByMarcaModeloFromDB,
   getVeiculosRegistrados,
   executeQuery,
+  healthCheck,
   isProduction,
 };

@@ -1,5 +1,5 @@
--- Script SQL para criar tabela no Supabase
--- Execute este script no SQL Editor do Supabase
+-- Script SQL para criar tabelas no Neon (PostgreSQL)
+-- Execute este script no SQL Editor do Neon
 
 -- Criar tabela principal para histórico de preços
 CREATE TABLE IF NOT EXISTS historico_precos (
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS historico_precos (
     nome_ano VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Constraint para evitar duplicatas
     UNIQUE(codigo_marca, codigo_modelo, ano_modelo, codigo_tipo_veiculo, codigo_tipo_combustivel, codigo_tabela_referencia)
 );
@@ -42,21 +42,24 @@ CREATE INDEX IF NOT EXISTS idx_cache_expires ON cache_entries(expires_at);
 
 -- Função para limpar cache expirado (executará automaticamente)
 CREATE OR REPLACE FUNCTION clean_expired_cache()
-RETURNS void AS $$
+RETURNS void
+SET search_path = public
+LANGUAGE plpgsql
+AS $$
 BEGIN
     DELETE FROM cache_entries WHERE expires_at < NOW();
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Comentários nas tabelas
 COMMENT ON TABLE historico_precos IS 'Armazena histórico de preços de veículos da FIPE';
 COMMENT ON TABLE cache_entries IS 'Cache de consultas para melhor performance';
 
--- Habilitar RLS (Row Level Security) se necessário
--- ALTER TABLE historico_precos ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE cache_entries ENABLE ROW LEVEL SECURITY;
+-- Otimizações para Neon
+-- Habilitar autovacuum nas tabelas
+ALTER TABLE historico_precos SET (autovacuum_enabled = true);
+ALTER TABLE cache_entries SET (autovacuum_enabled = true);
 
--- Inserir alguns dados de exemplo (opcional)
--- INSERT INTO historico_precos (codigo_marca, codigo_modelo, ano_modelo, preco, nome_marca, nome_modelo, nome_ano)
--- VALUES (1, 1, '2020', 'R$ 50.000,00', 'FIAT', 'UNO', '2020 Gasolina')
--- ON CONFLICT DO NOTHING;
+-- Configurar fillfactor para melhor performance de updates
+ALTER TABLE historico_precos SET (fillfactor = 80);
+ALTER TABLE cache_entries SET (fillfactor = 80);
