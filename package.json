@@ -1,14 +1,14 @@
 {
-  "name": "fipe-monitoring",
+  "name": "fipe-monitoring-nextjs",
   "version": "1.0.0",
-  "description": "Sistema de monitoramento de preços FIPE para Vercel + Neon",
-  "main": "api/index.js",
+  "description": "Sistema de monitoramento de preços FIPE com Next.js + Neon",
+  "main": "pages/index.js",
   "scripts": {
-    "dev": "cd backend && npm run dev",
-    "start": "cd backend && npm start",
-    "build": "echo 'Build completed'",
-    "vercel-build": "npm install",
-    "test": "node tests/run-all.js",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
     "test:db": "node tests/database.test.js",
     "test:neon": "node test-neon.js",
     "setup:neon": "./setup-neon.sh",
@@ -19,18 +19,25 @@
     "migrate:create": "node migrations/migrate.js create"
   },
   "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "axios": "^1.8.3",
+    "chart.js": "^4.4.0",
+    "react-chartjs-2": "^5.2.0",
     "date-fns": "^2.29.3",
     "dotenv": "^16.3.1",
-    "express": "^4.18.1",
+    "pg": "^8.11.3",
+    "winston": "^3.11.0",
+    "node-cache": "^5.1.2",
     "express-rate-limit": "^7.1.0",
     "helmet": "^7.1.0",
-    "morgan": "^1.10.0",
-    "node-cache": "^5.1.2",
-    "pg": "^8.11.3",
-    "winston": "^3.11.0"
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-config-next": "^14.0.0",
+    "jest": "^29.7.0",
     "sqlite3": "^5.1.6"
   },
   "engines": {

@@ -1,14 +1,15 @@
 # 🚗 FIPE Monitoring
 
+[![Next.js](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.18+-blue.svg)](https://expressjs.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue.svg)](https://neon.tech/)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black.svg)](https://vercel.com/)
 [![Chart.js](https://img.shields.io/badge/Chart.js-4+-orange.svg)](https://www.chartjs.org/)
 
 ## 📋 Descrição
 
-Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE (Fundação Instituto de Pesquisas Econômicas). A aplicação oferece consulta, armazenamento e análise de dados históricos com previsões inteligentes e visualizações interativas, **otimizada para deploy em nuvem com Neon PostgreSQL**.
+Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE (Fundação Instituto de Pesquisas Econômicas). A aplicação oferece consulta, armazenamento e análise de dados históricos com previsões inteligentes e visualizações interativas, **construída com Next.js e otimizada para deploy em nuvem com Neon PostgreSQL**.
 
 ### ✨ Principais Funcionalidades
 
@@ -18,8 +19,8 @@ Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE
 - 🎯 **Alertas Inteligentes**: Detecção automática de tendências e volatilidade
 - 💾 **Histórico Completo**: Armazenamento de até 24 meses de dados
 - ⚡ **Performance Otimizada**: Sistema de cache com rate limiting inteligente
-- � **API FIPE Otimizada**: Sistema avançado de requisições com queue, retry e circuit breaker
-- �🔒 **Segurança**: Headers de segurança e validação de dados
+- 🔄 **API FIPE Otimizada**: Sistema avançado de requisições com queue, retry e circuit breaker
+- 🔒 **Segurança**: Headers de segurança e validação de dados
 - 📱 **Design Responsivo**: Interface moderna que funciona em todos os dispositivos
 - ☁️ **Cloud Ready**: Deploye automaticamente no Vercel com Neon PostgreSQL
 
@@ -38,16 +39,22 @@ Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE
 
 ## 🚀 Quick Start (Deploy em Produção)
 
-### Opção 1: Script Automático
+### Opção 1: Deploy Automático no Vercel
 
 ```bash
-git clone <seu-repositorio>
-cd fipe_monitoring
-chmod +x setup-deploy.sh
-./setup-deploy.sh
+# 1. Faça push para o GitHub
+git add .
+git commit -m "🚀 Migração completa para Next.js"
+git push origin main
+
+# 2. Conecte o repositório no Vercel
+# - Vá para https://vercel.com
+# - Importe seu repositório GitHub
+# - Configure as variáveis de ambiente
+# - Deploy automático!
 ```
 
-### Opção 2: Passo a Passo Manual
+### Opção 2: Desenvolvimento Local
 
 #### 1. Configuração do Neon
 
