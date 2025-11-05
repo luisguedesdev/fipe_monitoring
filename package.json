@@ -7,7 +7,7 @@
     "dev": "cd backend && npm run dev",
     "start": "cd backend && npm start",
     "build": "echo 'Build completed'",
-    "vercel-build": "cd backend && npm install",
+    "vercel-build": "npm install",
     "test": "node tests/run-all.js",
     "test:db": "node tests/database.test.js",
     "test:neon": "node test-neon.js",
@@ -35,6 +35,13 @@
   },
   "engines": {
     "node": "18.x"
+  },
+  "vercel": {
+    "functions": {
+      "api/**/*.js": {
+        "maxDuration": 30
+      }
+    }
   },
   "keywords": [
     "fipe",

@@ -1,6 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-const { db, isProduction, executeQuery } = require("../backend/db");
+
+// Carregar variáveis de ambiente
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+
+const { db, useNeon, executeQuery } = require("../backend/db");
 const logger = require("../backend/config/logger");
 
 class MigrationManager {
@@ -11,7 +15,7 @@ class MigrationManager {
 
   async initMigrationsTable() {
     try {
-      const query = isProduction
+      const query = useNeon
         ? `CREATE TABLE IF NOT EXISTS ${this.migrationsTable} (
             id SERIAL PRIMARY KEY,
             filename VARCHAR(255) NOT NULL UNIQUE,
@@ -97,7 +101,7 @@ class MigrationManager {
       }
 
       // Registrar migration como executada
-      const paramPlaceholder = isProduction ? "$1" : "?";
+      const paramPlaceholder = useNeon ? "$1" : "?";
       const insertQuery = `INSERT INTO ${this.migrationsTable} (filename) VALUES (${paramPlaceholder})`;
       await executeQuery(insertQuery, [filename]);
 
@@ -161,7 +165,7 @@ class MigrationManager {
       }
 
       // Remover registro da migration
-      const paramPlaceholder = isProduction ? "$1" : "?";
+      const paramPlaceholder = useNeon ? "$1" : "?";
       const deleteQuery = `DELETE FROM ${this.migrationsTable} WHERE filename = ${paramPlaceholder}`;
       await executeQuery(deleteQuery, [filename]);
 

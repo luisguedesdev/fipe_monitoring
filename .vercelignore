@@ -1,0 +1,46 @@
+# Arquivos de desenvolvimento
+.git
+.gitignore
+README.md
+.env.example
+*.md
+
+# Scripts de setup local
+setup-neon.sh
+setup-tests.sh
+
+# Arquivos de teste
+test-*.js
+tests/
+*.test.js
+
+# Logs
+logs/
+*.log
+server.log
+
+# Dados locais
+data/
+
+# Node modules (Vercel instala automaticamente)
+node_modules/
+
+# Arquivos temporários
+*.tmp
+*.temp
+.DS_Store
+
+# Backend duplicado (usamos api/)
+backend/
+
+# Arquivos de migração (executados localmente)
+migrations/
+
+# Scripts locais
+scripts/
+
+# Arquivos de desenvolvimento
+.vscode/
+.idea/
+*.swp
+*.swo

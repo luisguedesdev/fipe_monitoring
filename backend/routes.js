@@ -13,7 +13,7 @@ const {
   getHistoricoByMarcaModeloFromDB,
   executeQuery,
   healthCheck,
-  isProduction,
+  useNeon,
 } = require("./db");
 
 // URLs da API FIPE
@@ -513,11 +513,11 @@ router.get("/dashboard/:marca/:modelo", async (req, res) => {
       return res.json(cached);
     }
 
-    const paramPlaceholder = isProduction
+    const paramPlaceholder = useNeon
       ? "WHERE codigo_marca = $1 AND codigo_modelo = $2 AND nome_ano = $3 ORDER BY data_consulta DESC"
       : "WHERE codigo_marca = ? AND codigo_modelo = ? AND nome_ano = ? ORDER BY data_consulta DESC";
 
-    const paramPlaceholderAll = isProduction
+    const paramPlaceholderAll = useNeon
       ? "WHERE codigo_marca = $1 AND codigo_modelo = $2 ORDER BY data_consulta DESC"
       : "WHERE codigo_marca = ? AND codigo_modelo = ? ORDER BY data_consulta DESC";
 
@@ -572,7 +572,7 @@ router.get("/todos-registros", async (req, res) => {
       return res.json(cached);
     }
 
-    const paramPlaceholder = isProduction
+    const paramPlaceholder = useNeon
       ? "ORDER BY data_consulta DESC LIMIT $1 OFFSET $2"
       : "ORDER BY data_consulta DESC LIMIT ? OFFSET ?";
 

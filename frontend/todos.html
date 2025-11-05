@@ -63,9 +63,9 @@
       // Filtrar registros
       let registrosFiltrados = todosRegistros.filter(r => {
         if (!filtroAtual) return true;
-        return (r.nomeMarca && r.nomeMarca.toLowerCase().includes(filtroAtual)) ||
-          (r.nomeModelo && r.nomeModelo.toLowerCase().includes(filtroAtual)) ||
-          (r.nomeAno && r.nomeAno.toLowerCase().includes(filtroAtual)) ||
+        return (r.nome_marca && r.nome_marca.toLowerCase().includes(filtroAtual)) ||
+          (r.nome_modelo && r.nome_modelo.toLowerCase().includes(filtroAtual)) ||
+          (r.nome_ano && r.nome_ano.toLowerCase().includes(filtroAtual)) ||
           (r.preco && r.preco.toLowerCase().includes(filtroAtual));
       });
 
@@ -182,9 +182,9 @@
         return `
                     <tr>
                       <td>${r.id}</td>
-                      <td><strong>${r.nomeMarca || r.codigoMarca}</strong></td>
-                      <td>${r.nomeModelo || r.codigoModelo}</td>
-                      <td>${r.nomeAno || r.anoModelo}</td>
+                      <td><strong>${r.nome_marca || r.codigo_marca}</strong></td>
+                      <td>${r.nome_modelo || r.codigo_modelo}</td>
+                      <td>${r.nome_ano || r.ano_modelo}</td>
                       <td><strong style="color: #27ae60;">${precoFormatado}</strong></td>
                       <td>${dataFormatada}</td>
                     </tr>

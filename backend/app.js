@@ -1,5 +1,5 @@
 // Carregar variáveis de ambiente
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 
 const express = require("express");
 const path = require("path");
@@ -64,13 +64,15 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Servir arquivos estáticos
-app.use(
-  express.static(path.join(__dirname, "..", "frontend"), {
-    maxAge: process.env.NODE_ENV === "production" ? "1d" : "0",
-    etag: true,
-  })
-);
+// Servir arquivos estáticos (ajustado para serverless)
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  app.use(
+    express.static(path.join(__dirname, "..", "frontend"), {
+      maxAge: process.env.NODE_ENV === "production" ? "1d" : "0",
+      etag: true,
+    })
+  );
+}
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -160,35 +162,54 @@ app.use("*", (req, res) => {
   }
 
   // Para outras rotas, servir o index.html (SPA fallback)
-  res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
+  if (process.env.NODE_ENV === "production" && process.env.VERCEL) {
+    // Em serverless, ler o arquivo diretamente
+    const fs = require("fs");
+    const path = require("path");
+    try {
+      const indexPath = path.join(__dirname, "..", "frontend", "index.html");
+      const html = fs.readFileSync(indexPath, "utf8");
+      res.setHeader("Content-Type", "text/html");
+      res.send(html);
+    } catch (error) {
+      logger.error("Erro ao servir index.html:", error);
+      res.status(500).send("Erro interno do servidor");
+    }
+  } else {
+    // Em desenvolvimento, usar sendFile
+    res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
+  }
 });
 
 const PORT = process.env.PORT || 3000;
 
-const server = app.listen(PORT, () => {
-  logger.info(`Servidor FIPE rodando na porta ${PORT}`, {
-    port: PORT,
-    environment: process.env.NODE_ENV || "development",
-    cacheEnabled: cache.enabled,
+// Só iniciar servidor se não estiver em ambiente serverless (Vercel)
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    logger.info(`Servidor FIPE rodando na porta ${PORT}`, {
+      port: PORT,
+      environment: process.env.NODE_ENV || "development",
+      cacheEnabled: cache.enabled,
+    });
   });
-});
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM recebido, iniciando shutdown graceful");
-  server.close(() => {
-    logger.info("Servidor fechado");
-    process.exit(0);
+  // Graceful shutdown
+  process.on("SIGTERM", () => {
+    logger.info("SIGTERM recebido, iniciando shutdown graceful");
+    server.close(() => {
+      logger.info("Servidor fechado");
+      process.exit(0);
+    });
   });
-});
 
-process.on("SIGINT", () => {
-  logger.info("SIGINT recebido, iniciando shutdown graceful");
-  server.close(() => {
-    logger.info("Servidor fechado");
-    process.exit(0);
+  process.on("SIGINT", () => {
+    logger.info("SIGINT recebido, iniciando shutdown graceful");
+    server.close(() => {
+      logger.info("Servidor fechado");
+      process.exit(0);
+    });
   });
-});
+}
 
 // Log de erros não capturados
 process.on("uncaughtException", (err) => {

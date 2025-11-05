@@ -1,12 +1,15 @@
+// Carregar variáveis de ambiente primeiro
+require("dotenv").config({ path: "../.env" });
+
 const logger = require("./config/logger");
 
-// Detectar se estamos em produção (Vercel) ou desenvolvimento
-const isProduction =
-  process.env.NODE_ENV === "production" || process.env.VERCEL;
+// Detectar se deve usar Neon (se DATABASE_URL está configurada)
+const useNeon =
+  process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("[YOUR_NEON");
 
 let db;
 
-if (isProduction) {
+if (useNeon) {
   const { Pool } = require("pg");
 
   const connectionString = process.env.DATABASE_URL;
@@ -179,7 +182,7 @@ async function insertHistorico(payload, preco) {
   try {
     const normalized = normalizePayload(payload);
 
-    if (isProduction) {
+    if (useNeon) {
       // PostgreSQL query
       const query = `
         INSERT INTO historico_precos 
@@ -239,7 +242,7 @@ async function recordExists(payload) {
   try {
     const normalized = normalizePayload(payload);
 
-    const paramPlaceholder = isProduction
+    const paramPlaceholder = useNeon
       ? "WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3 AND codigo_tipo_veiculo = $4 AND codigo_tipo_combustivel = $5 AND codigo_tabela_referencia = $6"
       : "WHERE codigo_marca = ? AND codigo_modelo = ? AND ano_modelo = ? AND codigo_tipo_veiculo = ? AND codigo_tipo_combustivel = ? AND codigo_tabela_referencia = ?";
 
@@ -286,7 +289,7 @@ async function saveHistorico(payload, preco) {
 
 async function getHistoricoByMarcaModelo(codigoMarca, codigoModelo) {
   try {
-    const paramPlaceholder = isProduction
+    const paramPlaceholder = useNeon
       ? "WHERE codigo_marca = $1 AND codigo_modelo = $2"
       : "WHERE codigo_marca = ? AND codigo_modelo = ?";
 
@@ -301,7 +304,7 @@ async function getHistoricoByMarcaModelo(codigoMarca, codigoModelo) {
 
 async function getHistoricoByMarcaModeloFromDB(marca, modelo) {
   try {
-    const paramPlaceholder = isProduction
+    const paramPlaceholder = useNeon
       ? "WHERE codigo_marca = $1 AND codigo_modelo = $2"
       : "WHERE codigo_marca = ? AND codigo_modelo = ?";
 
@@ -383,5 +386,5 @@ module.exports = {
   getVeiculosRegistrados,
   executeQuery,
   healthCheck,
-  isProduction,
+  useNeon,
 };

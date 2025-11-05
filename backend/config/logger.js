@@ -36,8 +36,42 @@ const logger = winston.createLogger({
   ],
 });
 
-// Em desenvolvimento, também log no console
-if (process.env.NODE_ENV !== "production") {
+// Em produção/serverless, usar apenas console
+if (process.env.NODE_ENV === "production" && process.env.VERCEL) {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp({
+          format: "YYYY-MM-DD HH:mm:ss",
+        }),
+        winston.format.errors({ stack: true }),
+        winston.format.json()
+      ),
+    })
+  );
+} else {
+  // Criar diretório de logs se não existir (apenas em desenvolvimento)
+  const logDir = path.join(__dirname, "..", "..", "logs");
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  // Adicionar transports de arquivo apenas em desenvolvimento
+  logger.transports.push(
+    new winston.transports.File({
+      filename: path.join(logDir, "error.log"),
+      level: "error",
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    }),
+    new winston.transports.File({
+      filename: path.join(logDir, "combined.log"),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    })
+  );
+
+  // Em desenvolvimento, também log colorido no console
   logger.add(
     new winston.transports.Console({
       format: winston.format.combine(
