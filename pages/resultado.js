@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
+import Header from "../components/Header";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -190,267 +191,276 @@ export default function ResultadoFipe() {
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Carregando dados do veículo...</p>
-      </div>
+      <>
+        <Header />
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>Carregando dados do veículo...</p>
+        </div>
+      </>
     );
   }
 
   if (!veiculo || !historico.length) {
     return (
-      <div className={styles.container}>
-        <div className={styles.emptyState}>
-          <h2>Nenhum dado encontrado</h2>
-          <p>Não há histórico de preços para este veículo.</p>
-          <Link href="/" className={styles.navButtonPrimary}>
-            ← Fazer nova consulta
-          </Link>
+      <>
+        <Header />
+        <div className={styles.container}>
+          <div className={styles.emptyState}>
+            <h2>Nenhum dado encontrado</h2>
+            <p>Não há histórico de preços para este veículo.</p>
+            <Link href="/" className={styles.navButtonPrimary}>
+              ← Fazer nova consulta
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>
-          {veiculo
-            ? `${veiculo.marca} ${veiculo.modelo} ${veiculo.ano} - Tabela FIPE`
-            : "Tabela FIPE"}
-        </title>
-        <meta
-          name="description"
-          content="Histórico de preços FIPE do veículo"
-        />
-      </Head>
+    <>
+      <Header />
+      <div className={styles.container}>
+        <Head>
+          <title>
+            {veiculo
+              ? `${veiculo.marca} ${veiculo.modelo} ${veiculo.ano} - Tabela FIPE`
+              : "Tabela FIPE"}
+          </title>
+          <meta
+            name="description"
+            content="Histórico de preços FIPE do veículo"
+          />
+        </Head>
 
-      {/* Breadcrumb */}
-      <div className={styles.breadcrumb}>
-        <Link href="/">Início</Link>
-        <span>/</span>
-        <Link href="/">Tabela FIPE</Link>
-        <span>/</span>
-        <span>
-          {veiculo?.marca} {veiculo?.modelo}
-        </span>
-      </div>
-
-      {/* Header do veículo */}
-      <div className={styles.vehicleHeader}>
-        <div className={styles.vehicleInfo}>
-          <span className={styles.vehicleType}>Carro</span>
-          <h1 className={styles.vehicleTitle}>
+        {/* Breadcrumb */}
+        <div className={styles.breadcrumb}>
+          <Link href="/">Início</Link>
+          <span>/</span>
+          <Link href="/">Tabela FIPE</Link>
+          <span>/</span>
+          <span>
             {veiculo?.marca} {veiculo?.modelo}
-          </h1>
-          <p className={styles.vehicleYear}>{veiculo?.ano}</p>
-        </div>
-
-        <div className={styles.priceBox}>
-          <span className={styles.priceLabel}>Preço FIPE Atual</span>
-          <span className={styles.priceValue}>
-            {estatisticas && formatarMoeda(estatisticas.precoAtual)}
           </span>
-          {estatisticas && (
-            <span
-              className={`${styles.variation} ${
-                estatisticas.variacaoTotal > 0
-                  ? styles.variationUp
-                  : estatisticas.variacaoTotal < 0
-                  ? styles.variationDown
-                  : ""
-              }`}
-            >
-              {formatarVariacao(estatisticas.variacaoTotal)} nos últimos{" "}
-              {periodoSelecionado} meses
-            </span>
-          )}
         </div>
-      </div>
 
-      {/* Cards de estatísticas */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>📊</div>
-          <div className={styles.statContent}>
-            <span className={styles.statLabel}>Variação Mensal Média</span>
-            <span className={styles.statValue}>
-              {estatisticas && formatarVariacao(estatisticas.variacaoMensal)}
-            </span>
+        {/* Header do veículo */}
+        <div className={styles.vehicleHeader}>
+          <div className={styles.vehicleInfo}>
+            <span className={styles.vehicleType}>Carro</span>
+            <h1 className={styles.vehicleTitle}>
+              {veiculo?.marca} {veiculo?.modelo}
+            </h1>
+            <p className={styles.vehicleYear}>{veiculo?.ano}</p>
           </div>
-        </div>
 
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>📉</div>
-          <div className={styles.statContent}>
-            <span className={styles.statLabel}>Menor Preço</span>
-            <span className={styles.statValue}>
-              {estatisticas && formatarMoeda(estatisticas.precoMinimo)}
+          <div className={styles.priceBox}>
+            <span className={styles.priceLabel}>Preço FIPE Atual</span>
+            <span className={styles.priceValue}>
+              {estatisticas && formatarMoeda(estatisticas.precoAtual)}
             </span>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>📈</div>
-          <div className={styles.statContent}>
-            <span className={styles.statLabel}>Maior Preço</span>
-            <span className={styles.statValue}>
-              {estatisticas && formatarMoeda(estatisticas.precoMaximo)}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>⚖️</div>
-          <div className={styles.statContent}>
-            <span className={styles.statLabel}>Preço Médio</span>
-            <span className={styles.statValue}>
-              {estatisticas && formatarMoeda(estatisticas.precoMedio)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Seletor de período */}
-      <div className={styles.periodSelector}>
-        <span>Período:</span>
-        <div className={styles.periodButtons}>
-          {[6, 12, 24].map((meses) => (
-            <button
-              key={meses}
-              className={`${styles.periodButton} ${
-                periodoSelecionado === meses ? styles.periodButtonActive : ""
-              }`}
-              onClick={() => setPeriodoSelecionado(meses)}
-            >
-              {meses} meses
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Gráfico de evolução */}
-      <div className={styles.chartSection}>
-        <h2 className={styles.sectionTitle}>📈 Evolução do Preço FIPE</h2>
-        <div className={styles.chartContainer}>
-          <Line data={chartData} options={chartOptions} />
-        </div>
-      </div>
-
-      {/* Previsão */}
-      {estatisticas && (
-        <div className={styles.forecastSection}>
-          <h2 className={styles.sectionTitle}>🔮 Previsão de Preço</h2>
-          <div className={styles.forecastGrid}>
-            <div className={styles.forecastCard}>
-              <span className={styles.forecastPeriod}>Em 3 meses</span>
-              <span className={styles.forecastValue}>
-                {formatarMoeda(estatisticas.previsao3Meses)}
-              </span>
+            {estatisticas && (
               <span
-                className={`${styles.forecastTrend} ${
-                  estatisticas.previsao3Meses > estatisticas.precoAtual
-                    ? styles.trendUp
-                    : styles.trendDown
+                className={`${styles.variation} ${
+                  estatisticas.variacaoTotal > 0
+                    ? styles.variationUp
+                    : estatisticas.variacaoTotal < 0
+                    ? styles.variationDown
+                    : ""
                 }`}
               >
-                {estatisticas.previsao3Meses > estatisticas.precoAtual
-                  ? "↑ Tendência de alta"
-                  : "↓ Tendência de baixa"}
+                {formatarVariacao(estatisticas.variacaoTotal)} nos últimos{" "}
+                {periodoSelecionado} meses
               </span>
-            </div>
+            )}
+          </div>
+        </div>
 
-            <div className={styles.forecastCard}>
-              <span className={styles.forecastPeriod}>Em 6 meses</span>
-              <span className={styles.forecastValue}>
-                {formatarMoeda(estatisticas.previsao6Meses)}
-              </span>
-              <span
-                className={`${styles.forecastTrend} ${
-                  estatisticas.previsao6Meses > estatisticas.precoAtual
-                    ? styles.trendUp
-                    : styles.trendDown
-                }`}
-              >
-                {estatisticas.previsao6Meses > estatisticas.precoAtual
-                  ? "↑ Tendência de alta"
-                  : "↓ Tendência de baixa"}
+        {/* Cards de estatísticas */}
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>📊</div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Variação Mensal Média</span>
+              <span className={styles.statValue}>
+                {estatisticas && formatarVariacao(estatisticas.variacaoMensal)}
               </span>
             </div>
           </div>
-          <p className={styles.forecastDisclaimer}>
-            * Previsão baseada na tendência histórica. Valores podem variar.
-          </p>
+
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>📉</div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Menor Preço</span>
+              <span className={styles.statValue}>
+                {estatisticas && formatarMoeda(estatisticas.precoMinimo)}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>📈</div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Maior Preço</span>
+              <span className={styles.statValue}>
+                {estatisticas && formatarMoeda(estatisticas.precoMaximo)}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>⚖️</div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Preço Médio</span>
+              <span className={styles.statValue}>
+                {estatisticas && formatarMoeda(estatisticas.precoMedio)}
+              </span>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Tabela de histórico */}
-      <div className={styles.historySection}>
-        <h2 className={styles.sectionTitle}>📋 Histórico de Preços</h2>
-        <div className={styles.tableContainer}>
-          <table className={styles.historyTable}>
-            <thead>
-              <tr>
-                <th>Mês/Ano</th>
-                <th>Preço FIPE</th>
-                <th>Variação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {historico.map((item, index) => {
-                const precoAtual = parseFloat(item.preco_numerico);
-                // Variação em relação ao mês anterior (que está na posição seguinte, pois dados são decrescentes)
-                const precoAnterior =
-                  index < historico.length - 1
-                    ? parseFloat(historico[index + 1].preco_numerico)
-                    : precoAtual;
-                const variacao =
-                  ((precoAtual - precoAnterior) / precoAnterior) * 100;
+        {/* Seletor de período */}
+        <div className={styles.periodSelector}>
+          <span>Período:</span>
+          <div className={styles.periodButtons}>
+            {[6, 12, 24].map((meses) => (
+              <button
+                key={meses}
+                className={`${styles.periodButton} ${
+                  periodoSelecionado === meses ? styles.periodButtonActive : ""
+                }`}
+                onClick={() => setPeriodoSelecionado(meses)}
+              >
+                {meses} meses
+              </button>
+            ))}
+          </div>
+        </div>
 
-                return (
-                  <tr key={index}>
-                    <td>
-                      {new Date(item.data_consulta).toLocaleDateString(
-                        "pt-BR",
-                        {
-                          month: "long",
-                          year: "numeric",
-                        }
-                      )}
-                    </td>
-                    <td className={styles.priceCell}>
-                      {formatarMoeda(precoAtual)}
-                    </td>
-                    <td
-                      className={`${styles.variationCell} ${
-                        variacao > 0
-                          ? styles.variationUp
-                          : variacao < 0
-                          ? styles.variationDown
-                          : ""
-                      }`}
-                    >
-                      {index < historico.length - 1
-                        ? formatarVariacao(variacao)
-                        : "-"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        {/* Gráfico de evolução */}
+        <div className={styles.chartSection}>
+          <h2 className={styles.sectionTitle}>📈 Evolução do Preço FIPE</h2>
+          <div className={styles.chartContainer}>
+            <Line data={chartData} options={chartOptions} />
+          </div>
+        </div>
+
+        {/* Previsão */}
+        {estatisticas && (
+          <div className={styles.forecastSection}>
+            <h2 className={styles.sectionTitle}>🔮 Previsão de Preço</h2>
+            <div className={styles.forecastGrid}>
+              <div className={styles.forecastCard}>
+                <span className={styles.forecastPeriod}>Em 3 meses</span>
+                <span className={styles.forecastValue}>
+                  {formatarMoeda(estatisticas.previsao3Meses)}
+                </span>
+                <span
+                  className={`${styles.forecastTrend} ${
+                    estatisticas.previsao3Meses > estatisticas.precoAtual
+                      ? styles.trendUp
+                      : styles.trendDown
+                  }`}
+                >
+                  {estatisticas.previsao3Meses > estatisticas.precoAtual
+                    ? "↑ Tendência de alta"
+                    : "↓ Tendência de baixa"}
+                </span>
+              </div>
+
+              <div className={styles.forecastCard}>
+                <span className={styles.forecastPeriod}>Em 6 meses</span>
+                <span className={styles.forecastValue}>
+                  {formatarMoeda(estatisticas.previsao6Meses)}
+                </span>
+                <span
+                  className={`${styles.forecastTrend} ${
+                    estatisticas.previsao6Meses > estatisticas.precoAtual
+                      ? styles.trendUp
+                      : styles.trendDown
+                  }`}
+                >
+                  {estatisticas.previsao6Meses > estatisticas.precoAtual
+                    ? "↑ Tendência de alta"
+                    : "↓ Tendência de baixa"}
+                </span>
+              </div>
+            </div>
+            <p className={styles.forecastDisclaimer}>
+              * Previsão baseada na tendência histórica. Valores podem variar.
+            </p>
+          </div>
+        )}
+
+        {/* Tabela de histórico */}
+        <div className={styles.historySection}>
+          <h2 className={styles.sectionTitle}>📋 Histórico de Preços</h2>
+          <div className={styles.tableContainer}>
+            <table className={styles.historyTable}>
+              <thead>
+                <tr>
+                  <th>Mês/Ano</th>
+                  <th>Preço FIPE</th>
+                  <th>Variação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historico.map((item, index) => {
+                  const precoAtual = parseFloat(item.preco_numerico);
+                  // Variação em relação ao mês anterior (que está na posição seguinte, pois dados são decrescentes)
+                  const precoAnterior =
+                    index < historico.length - 1
+                      ? parseFloat(historico[index + 1].preco_numerico)
+                      : precoAtual;
+                  const variacao =
+                    ((precoAtual - precoAnterior) / precoAnterior) * 100;
+
+                  return (
+                    <tr key={index}>
+                      <td>
+                        {new Date(item.data_consulta).toLocaleDateString(
+                          "pt-BR",
+                          {
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )}
+                      </td>
+                      <td className={styles.priceCell}>
+                        {formatarMoeda(precoAtual)}
+                      </td>
+                      <td
+                        className={`${styles.variationCell} ${
+                          variacao > 0
+                            ? styles.variationUp
+                            : variacao < 0
+                            ? styles.variationDown
+                            : ""
+                        }`}
+                      >
+                        {index < historico.length - 1
+                          ? formatarVariacao(variacao)
+                          : "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Navegação */}
+        <div className={styles.navigation}>
+          <Link href="/" className={styles.navButton}>
+            ← Nova Consulta
+          </Link>
+          <Link href="/todos" className={styles.navButtonPrimary}>
+            Ver Todos Veículos →
+          </Link>
         </div>
       </div>
-
-      {/* Navegação */}
-      <div className={styles.navigation}>
-        <Link href="/" className={styles.navButton}>
-          ← Nova Consulta
-        </Link>
-        <Link href="/dashboard" className={styles.navButtonPrimary}>
-          Ver Dashboard Completo →
-        </Link>
-      </div>
-    </div>
+    </>
   );
 }

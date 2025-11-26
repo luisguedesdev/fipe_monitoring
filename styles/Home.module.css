@@ -7,24 +7,22 @@
   overflow: hidden;
 }
 
-.header {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+.pageHeader {
+  background: linear-gradient(135deg, #e63946 0%, #d62839 100%);
   color: white;
-  padding: 40px;
-  text-align: center;
+  padding: 35px 40px;
 }
 
-.header h1 {
-  font-size: 2.8em;
-  margin-bottom: 10px;
+.pageHeader h1 {
+  font-size: 2rem;
+  margin: 0 0 8px 0;
   font-weight: 700;
 }
 
-.header p {
-  font-size: 1.2em;
-  opacity: 0.85;
-  max-width: 500px;
-  margin: 0 auto;
+.pageHeader p {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
 }
 
 .formContainer {
@@ -168,37 +166,6 @@
   border: none;
 }
 
-.navigation {
-  background: #f8f9fa;
-  padding: 25px;
-  text-align: center;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-
-.navLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 28px;
-  background: white;
-  color: #1a1a2e;
-  text-decoration: none;
-  border-radius: 10px;
-  font-weight: 600;
-  border: 2px solid #e0e0e0;
-  transition: all 0.3s ease;
-}
-
-.navLink:hover {
-  border-color: #e63946;
-  color: #e63946;
-  transform: translateY(-2px);
-  text-decoration: none;
-}
-
 /* Progress bar */
 .progressContainer {
   margin-top: 20px;
@@ -235,25 +202,15 @@
     border-radius: 16px;
   }
 
-  .header {
-    padding: 30px 20px;
+  .pageHeader {
+    padding: 25px 20px;
   }
 
-  .header h1 {
-    font-size: 2rem;
+  .pageHeader h1 {
+    font-size: 1.5rem;
   }
 
   .formContainer {
     padding: 30px 20px;
-  }
-
-  .navigation {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .navLink {
-    width: 100%;
-    justify-content: center;
   }
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import Header from "../components/Header";
 import styles from "../styles/Home.module.css";
 
 export default function Home() {
@@ -145,157 +146,153 @@ export default function Home() {
   };
 
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>FIPE Monitor - Consulta e Armazenamento</title>
-        <meta
-          name="description"
-          content="Sistema de monitoramento de preços FIPE"
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <>
+      <Header />
+      <div className={styles.container}>
+        <Head>
+          <title>FIPE Monitor - Consulta e Armazenamento</title>
+          <meta
+            name="description"
+            content="Sistema de monitoramento de preços FIPE"
+          />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
 
-      <div className={styles.header}>
-        <h1>🚗 FIPE Monitor</h1>
-        <p>Consulte preços de veículos e armazene histórico automaticamente</p>
-      </div>
-
-      <div className={styles.formContainer}>
-        {/* Etapa 1: Marca */}
-        <div className={styles.formGroup}>
-          <label htmlFor="selectMarca">
-            <span className={styles.stepNumber}>1</span> Marca do Veículo
-          </label>
-          <select
-            id="selectMarca"
-            value={marcaSelecionada}
-            onChange={handleMarcaChange}
-            className={styles.select}
-          >
-            <option value="">Selecione uma marca</option>
-            {marcas.map((marca) => (
-              <option key={marca.Value} value={marca.Value}>
-                {marca.Label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Etapa 2: Modelo Base */}
-        <div className={styles.formGroup}>
-          <label htmlFor="selectModeloBase">
-            <span className={styles.stepNumber}>2</span> Modelo
-          </label>
-          <select
-            id="selectModeloBase"
-            value={modeloBaseSelecionado}
-            onChange={handleModeloBaseChange}
-            disabled={!marcaSelecionada || loadingModelos}
-            className={styles.select}
-          >
-            <option value="">
-              {loadingModelos
-                ? "Carregando modelos..."
-                : marcaSelecionada
-                ? "Selecione um modelo"
-                : "Primeiro selecione uma marca"}
-            </option>
-            {modelosBase.map((modelo) => (
-              <option key={modelo.Value} value={modelo.Value}>
-                {modelo.Label} ({modelo.totalVersoes} versões)
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Etapa 3: Versão */}
-        <div className={styles.formGroup}>
-          <label htmlFor="selectVersao">
-            <span className={styles.stepNumber}>3</span> Versão
-          </label>
-          <select
-            id="selectVersao"
-            value={versaoSelecionada}
-            onChange={handleVersaoChange}
-            disabled={!modeloBaseSelecionado}
-            className={styles.select}
-          >
-            <option value="">
-              {modeloBaseSelecionado
-                ? "Selecione uma versão"
-                : "Primeiro selecione um modelo"}
-            </option>
-            {versoes.map((versao) => (
-              <option key={versao.codigo} value={versao.codigo}>
-                {versao.versao}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Etapa 4: Ano */}
-        <div className={styles.formGroup}>
-          <label htmlFor="selectAno">
-            <span className={styles.stepNumber}>4</span> Ano / Combustível
-          </label>
-          <select
-            id="selectAno"
-            value={anoSelecionado}
-            onChange={(e) => setAnoSelecionado(e.target.value)}
-            disabled={!versaoSelecionada}
-            className={styles.select}
-          >
-            <option value="">
-              {versaoSelecionada
-                ? "Selecione o ano"
-                : "Primeiro selecione uma versão"}
-            </option>
-            {anos.map((ano) => (
-              <option key={ano.Value} value={ano.Value}>
-                {ano.Label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.formGroup}>
-          <p className={styles.infoText}>
-            📊 O sistema consultará automaticamente os últimos{" "}
-            <strong>24 meses</strong> de histórico de preços
+        <div className={styles.pageHeader}>
+          <h1>Nova Consulta</h1>
+          <p>
+            Consulte preços de veículos e armazene histórico automaticamente
           </p>
         </div>
 
-        <button
-          onClick={consultarESalvar}
-          disabled={
-            loading ||
-            !marcaSelecionada ||
-            !versaoSelecionada ||
-            !anoSelecionado
-          }
-          className={styles.btnConsultar}
-        >
-          {loading ? "🔄 Consultando..." : "🔍 Consultar e Armazenar"}
-        </button>
+        <div className={styles.formContainer}>
+          {/* Etapa 1: Marca */}
+          <div className={styles.formGroup}>
+            <label htmlFor="selectMarca">
+              <span className={styles.stepNumber}>1</span> Marca do Veículo
+            </label>
+            <select
+              id="selectMarca"
+              value={marcaSelecionada}
+              onChange={handleMarcaChange}
+              className={styles.select}
+            >
+              <option value="">Selecione uma marca</option>
+              {marcas.map((marca) => (
+                <option key={marca.Value} value={marca.Value}>
+                  {marca.Label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {resultado && (
-          <div
-            className={`${styles.resultado} ${
-              resultado.includes("✅") ? styles.success : styles.error
-            }`}
-            dangerouslySetInnerHTML={{ __html: resultado }}
-          />
-        )}
-      </div>
+          {/* Etapa 2: Modelo Base */}
+          <div className={styles.formGroup}>
+            <label htmlFor="selectModeloBase">
+              <span className={styles.stepNumber}>2</span> Modelo
+            </label>
+            <select
+              id="selectModeloBase"
+              value={modeloBaseSelecionado}
+              onChange={handleModeloBaseChange}
+              disabled={!marcaSelecionada || loadingModelos}
+              className={styles.select}
+            >
+              <option value="">
+                {loadingModelos
+                  ? "Carregando modelos..."
+                  : marcaSelecionada
+                  ? "Selecione um modelo"
+                  : "Primeiro selecione uma marca"}
+              </option>
+              {modelosBase.map((modelo) => (
+                <option key={modelo.Value} value={modelo.Value}>
+                  {modelo.Label} ({modelo.totalVersoes} versões)
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div className={styles.navigation}>
-        <Link href="/dashboard" className={styles.navLink}>
-          📊 Dashboard
-        </Link>
-        <Link href="/todos" className={styles.navLink}>
-          📋 Ver Registros
-        </Link>
+          {/* Etapa 3: Versão */}
+          <div className={styles.formGroup}>
+            <label htmlFor="selectVersao">
+              <span className={styles.stepNumber}>3</span> Versão
+            </label>
+            <select
+              id="selectVersao"
+              value={versaoSelecionada}
+              onChange={handleVersaoChange}
+              disabled={!modeloBaseSelecionado}
+              className={styles.select}
+            >
+              <option value="">
+                {modeloBaseSelecionado
+                  ? "Selecione uma versão"
+                  : "Primeiro selecione um modelo"}
+              </option>
+              {versoes.map((versao) => (
+                <option key={versao.codigo} value={versao.codigo}>
+                  {versao.versao}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Etapa 4: Ano */}
+          <div className={styles.formGroup}>
+            <label htmlFor="selectAno">
+              <span className={styles.stepNumber}>4</span> Ano / Combustível
+            </label>
+            <select
+              id="selectAno"
+              value={anoSelecionado}
+              onChange={(e) => setAnoSelecionado(e.target.value)}
+              disabled={!versaoSelecionada}
+              className={styles.select}
+            >
+              <option value="">
+                {versaoSelecionada
+                  ? "Selecione o ano"
+                  : "Primeiro selecione uma versão"}
+              </option>
+              {anos.map((ano) => (
+                <option key={ano.Value} value={ano.Value}>
+                  {ano.Label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <p className={styles.infoText}>
+              📊 O sistema consultará automaticamente os últimos{" "}
+              <strong>24 meses</strong> de histórico de preços
+            </p>
+          </div>
+
+          <button
+            onClick={consultarESalvar}
+            disabled={
+              loading ||
+              !marcaSelecionada ||
+              !versaoSelecionada ||
+              !anoSelecionado
+            }
+            className={styles.btnConsultar}
+          >
+            {loading ? "🔄 Consultando..." : "🔍 Consultar e Armazenar"}
+          </button>
+
+          {resultado && (
+            <div
+              className={`${styles.resultado} ${
+                resultado.includes("✅") ? styles.success : styles.error
+              }`}
+              dangerouslySetInnerHTML={{ __html: resultado }}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

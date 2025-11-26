@@ -32,40 +32,33 @@
   }
 }
 
-/* Header */
-.header {
+/* Page Header */
+.pageHeader {
   background: linear-gradient(135deg, #e63946 0%, #d62839 100%);
   padding: 30px 20px;
   margin-bottom: 30px;
+  text-align: center;
 }
 
-.headerContent {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.backLink {
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  font-size: 14px;
-  display: inline-block;
-  margin-bottom: 10px;
-  transition: color 0.2s;
-}
-
-.backLink:hover {
-  color: #fff;
-}
-
-.header h1 {
+.pageHeader h1 {
   font-size: 28px;
   margin: 0 0 8px 0;
 }
 
-.header p {
+.pageHeader p {
   margin: 0;
   opacity: 0.9;
   font-size: 16px;
+}
+
+.offlineBadge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Filtros */
@@ -489,32 +482,89 @@
 
 /* Responsivo */
 @media (max-width: 768px) {
-  .header h1 {
+  .container {
+    padding-bottom: 80px; /* Espaço para o OfflineIndicator */
+  }
+  
+  .pageHeader {
+    padding: 24px 16px;
+  }
+  
+  .pageHeader h1 {
     font-size: 22px;
   }
 
   .filtrosContainer {
     flex-direction: column;
+    padding: 0 16px;
+    gap: 16px;
+  }
+  
+  .filtroGroup {
+    min-width: 100%;
+  }
+  
+  .resumoCards {
+    padding: 0 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  
+  .resumoCard {
+    padding: 14px 10px;
+  }
+  
+  .resumoValor {
+    font-size: 22px;
+  }
+  
+  .resumoLabel {
+    font-size: 10px;
   }
 
   .veiculosGrid {
     grid-template-columns: 1fr;
+    padding: 0 16px;
   }
-
-  .navigation {
-    flex-direction: column;
-  }
-
-  .navButton,
-  .navButtonPrimary {
-    text-align: center;
+  
+  .veiculoCard {
+    padding: 16px;
   }
 
   .btnDeletar {
     opacity: 1;
   }
+  
+  .modalContent {
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
 
   .modalButtons {
     flex-direction: column;
+  }
+}
+
+/* iPhone SE e dispositivos pequenos */
+@media (max-width: 375px) {
+  .pageHeader h1 {
+    font-size: 20px;
+  }
+  
+  .resumoCards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .resumoValor {
+    font-size: 18px;
+  }
+  
+  .veiculoModelo {
+    font-size: 16px;
+  }
+  
+  .precoValor {
+    font-size: 18px;
   }
 }

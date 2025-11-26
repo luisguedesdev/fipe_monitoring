@@ -4,11 +4,30 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Prevenir zoom no iOS ao focar em inputs */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  font-family: "Arial", sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   min-height: 100vh;
-  padding: 20px;
+  min-height: -webkit-fill-available;
+  color: #fff;
+  /* Melhor scroll no mobile */
+  -webkit-overflow-scrolling: touch;
+  /* Prevenir seleção acidental */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area para notch do iPhone */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 a {
@@ -16,6 +35,39 @@ a {
   text-decoration: none;
 }
 
-* {
-  box-sizing: border-box;
+/* Melhor experiência de toque */
+button, a, select, input {
+  touch-action: manipulation;
+}
+
+/* Estilo de seleção */
+::selection {
+  background: rgba(230, 57, 70, 0.3);
+  color: #fff;
+}
+
+/* Scrollbar customizada para desktop */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Pull to refresh visual (para PWA) */
+@supports (-webkit-touch-callout: none) {
+  body {
+    overscroll-behavior-y: contain;
+  }
 }

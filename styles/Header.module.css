@@ -1,0 +1,107 @@
+.header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: white;
+  font-weight: 700;
+  font-size: 1.3rem;
+  transition: opacity 0.2s;
+}
+
+.logo:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.logoIcon {
+  font-size: 1.8rem;
+}
+
+.logoText {
+  background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: 2px solid transparent;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+}
+
+.navLink.active {
+  background: linear-gradient(135deg, #e63946 0%, #d62839 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.navIcon {
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    height: 60px;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .logoIcon {
+    font-size: 1.5rem;
+  }
+
+  .navLink {
+    padding: 10px 14px;
+  }
+
+  .navText {
+    display: none;
+  }
+
+  .navIcon {
+    font-size: 1.3rem;
+  }
+}

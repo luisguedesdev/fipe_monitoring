@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import Header from "../components/Header";
+import OfflineIndicator from "../components/OfflineIndicator";
+import {
+  saveVeiculos,
+  getVeiculos as getOfflineVeiculos,
+  deleteVeiculo as deleteOfflineVeiculo,
+  getLastSyncTime,
+} from "../lib/offlineStorage";
 import styles from "../styles/Todos.module.css";
 
 export default function TodosVeiculos() {
@@ -10,23 +18,74 @@ export default function TodosVeiculos() {
   const [ordenacao, setOrdenacao] = useState("recente");
   const [deletando, setDeletando] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [isOfflineData, setIsOfflineData] = useState(false);
+  const [lastSync, setLastSync] = useState(null);
 
   useEffect(() => {
+    // Verificar status de conexão
+    setIsOnline(navigator.onLine);
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      // Recarregar dados quando voltar online
+      carregarVeiculos();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
     carregarVeiculos();
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const carregarVeiculos = async () => {
     try {
-      const response = await fetch("/api/veiculos");
-      const data = await response.json();
+      // Tentar buscar da API primeiro
+      if (navigator.onLine) {
+        const response = await fetch("/api/veiculos");
+        const data = await response.json();
 
-      if (data.success) {
-        setVeiculos(data.veiculos);
+        if (data.success) {
+          setVeiculos(data.veiculos);
+          setIsOfflineData(false);
+          // Salvar no IndexedDB para uso offline
+          await saveVeiculos(data.veiculos);
+          setLastSync(new Date());
+        }
+      } else {
+        // Se offline, carregar do IndexedDB
+        await carregarDadosOffline();
       }
     } catch (error) {
       console.error("Erro ao carregar veículos:", error);
+      // Fallback para dados offline em caso de erro
+      await carregarDadosOffline();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const carregarDadosOffline = async () => {
+    try {
+      const offlineVeiculos = await getOfflineVeiculos();
+      if (offlineVeiculos.length > 0) {
+        setVeiculos(offlineVeiculos);
+        setIsOfflineData(true);
+        const syncTime = await getLastSyncTime();
+        setLastSync(syncTime);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados offline:", error);
     }
   };
 
@@ -50,6 +109,16 @@ export default function TodosVeiculos() {
     });
   };
 
+  const formatarDataHora = (data) => {
+    if (!data) return "Nunca";
+    return new Date(data).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const deletarVeiculo = async (veiculo, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -58,22 +127,45 @@ export default function TodosVeiculos() {
     setDeletando(chave);
 
     try {
-      const response = await fetch("/api/veiculos/deletar", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          codigoMarca: veiculo.codigoMarca,
-          codigoModelo: veiculo.codigoModelo,
-          anoModelo: veiculo.anoModelo,
-        }),
-      });
+      if (navigator.onLine) {
+        const response = await fetch("/api/veiculos/deletar", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            codigoMarca: veiculo.codigoMarca,
+            codigoModelo: veiculo.codigoModelo,
+            anoModelo: veiculo.anoModelo,
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data.success) {
-        // Remover da lista local
+        if (data.success) {
+          // Remover da lista local
+          setVeiculos((prev) =>
+            prev.filter(
+              (v) =>
+                !(
+                  v.codigoMarca === veiculo.codigoMarca &&
+                  v.codigoModelo === veiculo.codigoModelo &&
+                  v.anoModelo === veiculo.anoModelo
+                )
+            )
+          );
+          // Remover do IndexedDB também
+          await deleteOfflineVeiculo(
+            veiculo.codigoMarca,
+            veiculo.codigoModelo,
+            veiculo.anoModelo
+          );
+          setConfirmDelete(null);
+        } else {
+          alert("Erro ao deletar veículo: " + data.error);
+        }
+      } else {
+        // Offline - apenas remover localmente (será sincronizado depois)
         setVeiculos((prev) =>
           prev.filter(
             (v) =>
@@ -84,9 +176,13 @@ export default function TodosVeiculos() {
               )
           )
         );
+        await deleteOfflineVeiculo(
+          veiculo.codigoMarca,
+          veiculo.codigoModelo,
+          veiculo.anoModelo
+        );
         setConfirmDelete(null);
-      } else {
-        alert("Erro ao deletar veículo: " + data.error);
+        alert("Veículo removido localmente. Será sincronizado quando voltar online.");
       }
     } catch (error) {
       console.error("Erro ao deletar:", error);
@@ -152,207 +248,210 @@ export default function TodosVeiculos() {
   }
 
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Todos os Veículos - FIPE Monitor</title>
-        <meta
-          name="description"
-          content="Lista de todos os veículos monitorados"
-        />
-      </Head>
+    <>
+      <Header />
+      <OfflineIndicator 
+        isOnline={isOnline} 
+        isOfflineData={isOfflineData}
+        lastSync={lastSync}
+        onSync={carregarVeiculos}
+      />
+      <div className={styles.container}>
+        <Head>
+          <title>Todos os Veículos - FIPE Monitor</title>
+          <meta
+            name="description"
+            content="Lista de todos os veículos monitorados"
+          />
+        </Head>
 
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <Link href="/" className={styles.backLink}>
-            ← Voltar
-          </Link>
+        {/* Page Header */}
+        <div className={styles.pageHeader}>
           <h1>📋 Veículos Monitorados</h1>
           <p>
             {veiculos.length} veículo{veiculos.length !== 1 ? "s" : ""}{" "}
             cadastrado
             {veiculos.length !== 1 ? "s" : ""}
           </p>
-        </div>
-      </div>
-
-      {/* Filtros */}
-      <div className={styles.filtrosContainer}>
-        <div className={styles.filtroGroup}>
-          <label>🔍 Buscar</label>
-          <input
-            type="text"
-            placeholder="Buscar por marca ou modelo..."
-            value={filtroMarca}
-            onChange={(e) => setFiltroMarca(e.target.value)}
-            className={styles.inputBusca}
-          />
+          {isOfflineData && (
+            <span className={styles.offlineBadge}>
+              📱 Modo Offline • Sincronizado: {formatarDataHora(lastSync)}
+            </span>
+          )}
         </div>
 
-        <div className={styles.filtroGroup}>
-          <label>📊 Ordenar por</label>
-          <select
-            value={ordenacao}
-            onChange={(e) => setOrdenacao(e.target.value)}
-            className={styles.selectOrdenacao}
-          >
-            <option value="recente">Mais recente</option>
-            <option value="antigo">Mais antigo</option>
-            <option value="preco-maior">Maior preço</option>
-            <option value="preco-menor">Menor preço</option>
-            <option value="variacao-maior">Maior valorização</option>
-            <option value="variacao-menor">Maior desvalorização</option>
-            <option value="registros">Mais registros</option>
-          </select>
-        </div>
-      </div>
+        {/* Filtros */}
+        <div className={styles.filtrosContainer}>
+          <div className={styles.filtroGroup}>
+            <label>🔍 Buscar</label>
+            <input
+              type="text"
+              placeholder="Buscar por marca ou modelo..."
+              value={filtroMarca}
+              onChange={(e) => setFiltroMarca(e.target.value)}
+              className={styles.inputBusca}
+            />
+          </div>
 
-      {/* Resumo */}
-      <div className={styles.resumoCards}>
-        <div className={styles.resumoCard}>
-          <span className={styles.resumoIcon}>🚗</span>
-          <span className={styles.resumoValor}>{veiculos.length}</span>
-          <span className={styles.resumoLabel}>Veículos</span>
-        </div>
-        <div className={styles.resumoCard}>
-          <span className={styles.resumoIcon}>📊</span>
-          <span className={styles.resumoValor}>
-            {veiculos.reduce((acc, v) => acc + v.totalRegistros, 0)}
-          </span>
-          <span className={styles.resumoLabel}>Registros totais</span>
-        </div>
-        <div className={styles.resumoCard}>
-          <span className={styles.resumoIcon}>🏷️</span>
-          <span className={styles.resumoValor}>{marcasUnicas.length}</span>
-          <span className={styles.resumoLabel}>Marcas</span>
-        </div>
-      </div>
-
-      {/* Lista de veículos */}
-      {veiculosFiltrados.length === 0 ? (
-        <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>🔍</span>
-          <h2>Nenhum veículo encontrado</h2>
-          <p>
-            {filtroMarca
-              ? "Tente uma busca diferente"
-              : "Faça sua primeira consulta na página inicial"}
-          </p>
-          <Link href="/" className={styles.btnPrimary}>
-            Consultar veículo
-          </Link>
-        </div>
-      ) : (
-        <div className={styles.veiculosGrid}>
-          {veiculosFiltrados.map((veiculo, index) => {
-            const chave = `${veiculo.codigoMarca}-${veiculo.codigoModelo}-${veiculo.anoModelo}`;
-            return (
-              <div key={chave} className={styles.veiculoCardWrapper}>
-                <Link
-                  href={`/resultado?marca=${veiculo.codigoMarca}&modelo=${veiculo.codigoModelo}&ano=${veiculo.anoModelo}`}
-                  className={styles.veiculoCard}
-                >
-                  <div className={styles.veiculoHeader}>
-                    <span className={styles.veiculoMarca}>
-                      {veiculo.nomeMarca}
-                    </span>
-                    <span
-                      className={`${styles.veiculoVariacao} ${
-                        veiculo.variacao > 0
-                          ? styles.variacaoUp
-                          : veiculo.variacao < 0
-                          ? styles.variacaoDown
-                          : ""
-                      }`}
-                    >
-                      {formatarVariacao(veiculo.variacao)}
-                    </span>
-                  </div>
-
-                  <h3 className={styles.veiculoModelo}>{veiculo.nomeModelo}</h3>
-                  <span className={styles.veiculoAno}>{veiculo.nomeAno}</span>
-
-                  <div className={styles.veiculoPreco}>
-                    <span className={styles.precoLabel}>Último preço</span>
-                    <span className={styles.precoValor}>
-                      {formatarMoeda(veiculo.ultimoPrecoNum)}
-                    </span>
-                  </div>
-
-                  <div className={styles.veiculoInfo}>
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoIcon}>📊</span>
-                      <span>{veiculo.totalRegistros} registros</span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoIcon}>📅</span>
-                      <span>{formatarData(veiculo.ultimaConsulta)}</span>
-                    </div>
-                  </div>
-
-                  <div className={styles.verMais}>Ver histórico →</div>
-                </Link>
-
-                <button
-                  className={styles.btnDeletar}
-                  onClick={(e) => abrirConfirmacao(veiculo, e)}
-                  title="Deletar veículo"
-                >
-                  🗑️
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Modal de confirmação */}
-      {confirmDelete && (
-        <div className={styles.modalOverlay} onClick={fecharConfirmacao}>
-          <div
-            className={styles.modalContent}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>⚠️ Confirmar exclusão</h3>
-            <p>
-              Tem certeza que deseja excluir o veículo{" "}
-              <strong>
-                {confirmDelete.nomeMarca} {confirmDelete.nomeModelo}
-              </strong>
-              ?
-            </p>
-            <p className={styles.modalWarning}>
-              Esta ação irá remover {confirmDelete.totalRegistros} registros de
-              histórico e não pode ser desfeita.
-            </p>
-            <div className={styles.modalButtons}>
-              <button
-                className={styles.btnCancelar}
-                onClick={fecharConfirmacao}
-              >
-                Cancelar
-              </button>
-              <button
-                className={styles.btnConfirmarDelete}
-                onClick={(e) => deletarVeiculo(confirmDelete, e)}
-                disabled={deletando !== null}
-              >
-                {deletando ? "Excluindo..." : "Sim, excluir"}
-              </button>
-            </div>
+          <div className={styles.filtroGroup}>
+            <label>📊 Ordenar por</label>
+            <select
+              value={ordenacao}
+              onChange={(e) => setOrdenacao(e.target.value)}
+              className={styles.selectOrdenacao}
+            >
+              <option value="recente">Mais recente</option>
+              <option value="antigo">Mais antigo</option>
+              <option value="preco-maior">Maior preço</option>
+              <option value="preco-menor">Menor preço</option>
+              <option value="variacao-maior">Maior valorização</option>
+              <option value="variacao-menor">Maior desvalorização</option>
+              <option value="registros">Mais registros</option>
+            </select>
           </div>
         </div>
-      )}
 
-      {/* Navegação */}
-      <div className={styles.navigation}>
-        <Link href="/" className={styles.navButton}>
-          ← Nova Consulta
-        </Link>
-        <Link href="/dashboard" className={styles.navButtonPrimary}>
-          Dashboard →
-        </Link>
+        {/* Resumo */}
+        <div className={styles.resumoCards}>
+          <div className={styles.resumoCard}>
+            <span className={styles.resumoIcon}>🚗</span>
+            <span className={styles.resumoValor}>{veiculos.length}</span>
+            <span className={styles.resumoLabel}>Veículos</span>
+          </div>
+          <div className={styles.resumoCard}>
+            <span className={styles.resumoIcon}>📊</span>
+            <span className={styles.resumoValor}>
+              {veiculos.reduce((acc, v) => acc + v.totalRegistros, 0)}
+            </span>
+            <span className={styles.resumoLabel}>Registros totais</span>
+          </div>
+          <div className={styles.resumoCard}>
+            <span className={styles.resumoIcon}>🏷️</span>
+            <span className={styles.resumoValor}>{marcasUnicas.length}</span>
+            <span className={styles.resumoLabel}>Marcas</span>
+          </div>
+        </div>
+
+        {/* Lista de veículos */}
+        {veiculosFiltrados.length === 0 ? (
+          <div className={styles.emptyState}>
+            <span className={styles.emptyIcon}>🔍</span>
+            <h2>Nenhum veículo encontrado</h2>
+            <p>
+              {filtroMarca
+                ? "Tente uma busca diferente"
+                : "Faça sua primeira consulta na página inicial"}
+            </p>
+            {isOnline && (
+              <Link href="/" className={styles.btnPrimary}>
+                Consultar veículo
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className={styles.veiculosGrid}>
+            {veiculosFiltrados.map((veiculo) => {
+              const chave = `${veiculo.codigoMarca}-${veiculo.codigoModelo}-${veiculo.anoModelo}`;
+              return (
+                <div key={chave} className={styles.veiculoCardWrapper}>
+                  <Link
+                    href={`/resultado?marca=${veiculo.codigoMarca}&modelo=${veiculo.codigoModelo}&ano=${veiculo.anoModelo}`}
+                    className={styles.veiculoCard}
+                  >
+                    <div className={styles.veiculoHeader}>
+                      <span className={styles.veiculoMarca}>
+                        {veiculo.nomeMarca}
+                      </span>
+                      <span
+                        className={`${styles.veiculoVariacao} ${
+                          veiculo.variacao > 0
+                            ? styles.variacaoUp
+                            : veiculo.variacao < 0
+                            ? styles.variacaoDown
+                            : ""
+                        }`}
+                      >
+                        {formatarVariacao(veiculo.variacao)}
+                      </span>
+                    </div>
+
+                    <h3 className={styles.veiculoModelo}>
+                      {veiculo.nomeModelo}
+                    </h3>
+                    <span className={styles.veiculoAno}>{veiculo.nomeAno}</span>
+
+                    <div className={styles.veiculoPreco}>
+                      <span className={styles.precoLabel}>Último preço</span>
+                      <span className={styles.precoValor}>
+                        {formatarMoeda(veiculo.ultimoPrecoNum)}
+                      </span>
+                    </div>
+
+                    <div className={styles.veiculoInfo}>
+                      <div className={styles.infoItem}>
+                        <span className={styles.infoIcon}>📊</span>
+                        <span>{veiculo.totalRegistros} registros</span>
+                      </div>
+                      <div className={styles.infoItem}>
+                        <span className={styles.infoIcon}>📅</span>
+                        <span>{formatarData(veiculo.ultimaConsulta)}</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.verMais}>Ver histórico →</div>
+                  </Link>
+
+                  <button
+                    className={styles.btnDeletar}
+                    onClick={(e) => abrirConfirmacao(veiculo, e)}
+                    title="Deletar veículo"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Modal de confirmação */}
+        {confirmDelete && (
+          <div className={styles.modalOverlay} onClick={fecharConfirmacao}>
+            <div
+              className={styles.modalContent}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3>⚠️ Confirmar exclusão</h3>
+              <p>
+                Tem certeza que deseja excluir o veículo{" "}
+                <strong>
+                  {confirmDelete.nomeMarca} {confirmDelete.nomeModelo}
+                </strong>
+                ?
+              </p>
+              <p className={styles.modalWarning}>
+                Esta ação irá remover {confirmDelete.totalRegistros} registros
+                de histórico e não pode ser desfeita.
+              </p>
+              <div className={styles.modalButtons}>
+                <button
+                  className={styles.btnCancelar}
+                  onClick={fecharConfirmacao}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className={styles.btnConfirmarDelete}
+                  onClick={(e) => deletarVeiculo(confirmDelete, e)}
+                  disabled={deletando !== null}
+                >
+                  {deletando ? "Excluindo..." : "Sim, excluir"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 }
