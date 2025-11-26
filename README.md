@@ -1,419 +1,526 @@
-# 🚗 FIPE Monitoring
+# 🚗 FIPE Monitor
 
-[![Next.js](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue.svg)](https://neon.tech/)
-[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black.svg)](https://vercel.com/)
-[![Chart.js](https://img.shields.io/badge/Chart.js-4+-orange.svg)](https://www.chartjs.org/)
+<div align="center">
 
-## 📋 Descrição
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?style=for-the-badge&logo=postgresql)
+![Vercel](https://img.shields.io/badge/Vercel-Deploy-black?style=for-the-badge&logo=vercel)
 
-Sistema completo de monitoramento de preços de veículos baseado na tabela FIPE (Fundação Instituto de Pesquisas Econômicas). A aplicação oferece consulta, armazenamento e análise de dados históricos com previsões inteligentes e visualizações interativas, **construída com Next.js e otimizada para deploy em nuvem com Neon PostgreSQL**.
+**Sistema completo de monitoramento de preços da Tabela FIPE com histórico de até 24 meses**
 
-### ✨ Principais Funcionalidades
+[Demo](https://fipe-monitoring.vercel.app) • [Reportar Bug](https://github.com/luisguedesdev/fipe_monitoring/issues) • [Solicitar Feature](https://github.com/luisguedesdev/fipe_monitoring/issues)
 
-- 🔍 **Consulta Inteligente**: Busca por marca, modelo e ano com autocomplete
-- 📊 **Dashboard Interativo**: Gráficos avançados com múltiplos tipos de visualização
-- 📈 **Análise Preditiva**: Previsões baseadas em regressão linear com indicador de confiança
-- 🎯 **Alertas Inteligentes**: Detecção automática de tendências e volatilidade
-- 💾 **Histórico Completo**: Armazenamento de até 24 meses de dados
-- ⚡ **Performance Otimizada**: Sistema de cache com rate limiting inteligente
-- 🔄 **API FIPE Otimizada**: Sistema avançado de requisições com queue, retry e circuit breaker
-- 🔒 **Segurança**: Headers de segurança e validação de dados
-- 📱 **Design Responsivo**: Interface moderna que funciona em todos os dispositivos
-- ☁️ **Cloud Ready**: Deploye automaticamente no Vercel com Neon PostgreSQL
+</div>
 
-## 🎯 Novidade: Sistema Inteligente de Requisições FIPE
+---
 
-**Eliminação de erros "N/D" e bloqueios da API!**
+## 📋 Índice
 
-- ✅ **Queue System**: Fila centralizada para todas as requisições
-- ✅ **Rate Limiting**: 25 req/min com delays dinâmicos (300-1000ms)
-- ✅ **Retry Inteligente**: Backoff exponencial com até 3 tentativas
-- ✅ **Circuit Breaker**: Proteção automática contra sobrecarga
-- ✅ **Batch Processing**: Otimização de requisições múltiplas
-- ✅ **100% Confiabilidade**: Taxa de sucesso de 95-100%
+- [Sobre o Projeto](#-sobre-o-projeto)
+- [Funcionalidades](#-funcionalidades)
+- [Screenshots](#-screenshots)
+- [Tecnologias](#-tecnologias)
+- [Arquitetura](#-arquitetura)
+- [Instalação](#-instalação)
+- [Configuração](#-configuração)
+- [Deploy](#-deploy)
+- [API Reference](#-api-reference)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Contribuição](#-contribuição)
+- [Licença](#-licença)
 
-📖 [Ver detalhes completos em FIPE_IMPROVEMENTS.md](FIPE_IMPROVEMENTS.md)
+---
 
-## 🚀 Quick Start (Deploy em Produção)
+## 🎯 Sobre o Projeto
 
-### Opção 1: Deploy Automático no Vercel
+O **FIPE Monitor** é uma aplicação web que permite consultar e acompanhar a evolução dos preços de veículos na Tabela FIPE ao longo do tempo. Com ele, você pode:
 
-```bash
-# 1. Faça push para o GitHub
-git add .
-git commit -m "🚀 Migração completa para Next.js"
-git push origin main
+- Consultar o preço atual de qualquer veículo
+- Visualizar o histórico de preços dos últimos 24 meses
+- Analisar tendências de valorização ou desvalorização
+- Comparar diferentes períodos (6, 12 ou 24 meses)
+- Receber previsões baseadas em tendências históricas
 
-# 2. Conecte o repositório no Vercel
-# - Vá para https://vercel.com
-# - Importe seu repositório GitHub
-# - Configure as variáveis de ambiente
-# - Deploy automático!
+### Por que usar?
+
+🔍 **Compra inteligente**: Saiba se o veículo está valorizado ou desvalorizado antes de comprar
+
+📉 **Análise de mercado**: Acompanhe as tendências do mercado automotivo
+
+💰 **Negociação**: Tenha dados concretos para negociar o preço do seu veículo
+
+📊 **Histórico completo**: Visualize a evolução de preços em gráficos interativos
+
+---
+
+## ✨ Funcionalidades
+
+### 🔎 Consulta de Veículos
+
+- Seleção em 4 etapas: **Marca → Modelo → Versão → Ano**
+- Suporte a todas as marcas e modelos da Tabela FIPE
+- Busca automática de histórico de 24 meses
+
+### 📊 Dashboard de Resultados
+
+- Preço atual com variação percentual
+- Gráfico interativo de evolução de preços
+- Estatísticas: preço mínimo, máximo e médio
+- Previsão de preços para 3 e 6 meses
+- Tabela detalhada com histórico mensal
+
+### 📋 Gerenciamento de Veículos
+
+- Lista de todos os veículos monitorados
+- Filtro e ordenação por diversos critérios
+- Exclusão de veículos da base
+- Resumo com totais e estatísticas
+
+### 🎨 Interface Moderna
+
+- Design responsivo (mobile-first)
+- Tema escuro elegante
+- Animações suaves
+- Indicadores visuais de tendência
+
+---
+
+## 📸 Screenshots
+
+### Página Inicial - Seleção de Veículo
+
+```text
+┌─────────────────────────────────────────┐
+│  🚗 FIPE Monitor                        │
+│  ────────────────────────────────────   │
+│  ① Marca:    [Ford           ▼]         │
+│  ② Modelo:   [Ranger         ▼]         │
+│  ③ Versão:   [Limited 3.2... ▼]         │
+│  ④ Ano:      [2014 Diesel    ▼]         │
+│                                         │
+│  [🔍 Consultar e Armazenar]             │
+└─────────────────────────────────────────┘
 ```
 
-### Opção 2: Desenvolvimento Local
+### Página de Resultado
 
-#### 1. Configuração do Neon
+```text
+┌─────────────────────────────────────────┐
+│  Ford Ranger Limited 3.2                │
+│  2014 Diesel                            │
+│  ────────────────────────────────────   │
+│  Preço FIPE: R$ 107.120,00  (+7.12%)    │
+│                                         │
+│  📈 [Gráfico de Evolução]               │
+│                                         │
+│  📊 Estatísticas:                       │
+│  • Mínimo: R$ 100.000   • Máximo: R$110k│
+│  • Média:  R$ 105.000   • Var: +0.30%/m │
+└─────────────────────────────────────────┘
+```
 
-1. Acesse [neon.tech](https://neon.tech) e crie uma conta
-2. Crie um novo projeto
-3. Vá para SQL Editor e execute o conteúdo de `neon_setup.sql`
-4. Copie a string de conexão PostgreSQL
+---
 
-#### 2. Deploy no Vercel
+## 🛠 Tecnologias
 
-1. Faça push do código para GitHub/GitLab
-2. Acesse [vercel.com](https://vercel.com) e importe o projeto
-3. Configure as variáveis de ambiente:
-   - `DATABASE_URL`: String de conexão do Neon
-   - `NODE_ENV`: `production`
-4. Deploy!
+### Frontend
 
-📖 **Para instruções detalhadas, consulte [DEPLOY_GUIDE.md](DEPLOY_GUIDE.md)**
+| Tecnologia  | Versão | Descrição               |
+| ----------- | ------ | ----------------------- |
+| Next.js     | 14.x   | Framework React com SSR |
+| React       | 18.x   | Biblioteca de UI        |
+| Chart.js    | 4.x    | Gráficos interativos    |
+| CSS Modules | -      | Estilos com escopo      |
 
-## 🛠️ Desenvolvimento Local
+### Backend
+
+| Tecnologia         | Versão | Descrição         |
+| ------------------ | ------ | ----------------- |
+| Next.js API Routes | 14.x   | API serverless    |
+| Axios              | 1.x    | Cliente HTTP      |
+| pg                 | 8.x    | Driver PostgreSQL |
+
+### Infraestrutura
+
+| Serviço        | Descrição                            |
+| -------------- | ------------------------------------ |
+| Vercel         | Hospedagem e deploy                  |
+| Neon           | Banco de dados PostgreSQL serverless |
+| Parallelum API | API de dados FIPE                    |
+
+---
+
+## 🏗 Arquitetura
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                        CLIENTE                               │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │
+│  │  index  │  │resultado│  │  todos  │  │dashboard│        │
+│  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘        │
+│       │            │            │            │              │
+└───────┼────────────┼────────────┼────────────┼──────────────┘
+        │            │            │            │
+        ▼            ▼            ▼            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    API ROUTES (Next.js)                      │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │ /marcas  │ │/modelos  │ │/consultar│ │/veiculos │       │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘       │
+└───────┼────────────┼────────────┼────────────┼──────────────┘
+        │            │            │            │
+        ▼            ▼            ▼            ▼
+┌─────────────────────┐    ┌─────────────────────┐
+│   Parallelum API    │    │   PostgreSQL (Neon) │
+│   (Dados FIPE)      │    │   (Histórico)       │
+└─────────────────────┘    └─────────────────────┘
+```
+
+---
+
+## 🚀 Instalação
 
 ### Pré-requisitos
 
-- Node.js 18+
+- Node.js 18.x ou superior
 - npm ou yarn
+- Conta no [Neon](https://neon.tech) (banco de dados)
 
-### Instalação
+### Passo a passo
+
+1. **Clone o repositório**
+
+```bash
+git clone https://github.com/luisguedesdev/fipe_monitoring.git
+cd fipe_monitoring
+```
+
+2. **Instale as dependências**
 
 ```bash
 npm install
 ```
 
-### Configuração
+3. **Configure as variáveis de ambiente**
 
 ```bash
 cp .env.example .env
-# Configure suas variáveis de ambiente
 ```
 
-### Execução
+4. **Execute as migrações**
 
 ```bash
-# Desenvolvimento
-npm run dev
-
-# Produção local
-npm start
+npm run migrate
 ```
 
-## 🔧 Configuração Avançada
+5. **Inicie o servidor de desenvolvimento**
 
-### Variáveis de Ambiente (.env)
+```bash
+npm run dev
+```
+
+6. **Acesse a aplicação**
+
+```text
+http://localhost:3000
+```
+
+---
+
+## ⚙️ Configuração
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto:
 
 ```env
-# Servidor
-PORT=3000
-NODE_ENV=development
-
-# Banco de Dados
-DB_PATH=./data/database.db
-
-# API FIPE
-FIPE_BASE_URL=https://veiculos.fipe.org.br/api/veiculos
-REQUEST_TIMEOUT=30000
-MAX_RETRIES=3
-
-# Cache
-CACHE_TTL=300000
-ENABLE_CACHE=true
-
-# Logs
-LOG_LEVEL=info
-LOG_FILE=./logs/app.log
-
-# Segurança
-RATE_LIMIT_WINDOW=900000
-RATE_LIMIT_MAX_REQUESTS=100
+# Banco de dados PostgreSQL (Neon)
+DATABASE_URL=postgresql://user:password@host.neon.tech/database?sslmode=require
 ```
 
-## �️ Banco de Dados
+### Obtendo a DATABASE_URL
 
-### Configuração PostgreSQL (Neon)
+1. Acesse [neon.tech](https://neon.tech) e crie uma conta
+2. Crie um novo projeto
+3. Copie a connection string em **Dashboard → Connection Details**
+4. Cole no seu arquivo `.env`
 
-- **Variável**: `DATABASE_URL`
-- **Recomendação**: Use a **connection string do Neon** com `?sslmode=require`
-- **Exemplo**: `postgresql://user:password@ep-xxx.us-east-1.neon.tech/dbname?sslmode=require`
+---
 
-### Observações Importantes
+## 🌐 Deploy
 
-- Neon oferece **auto-scaling** e **branching** para desenvolvimento
-- Rotacionar senha no Neon invalida conexões antigas
-- Atualizar Vercel/locais e redeploy após mudança de senha
-- **Nunca expor segredos nos logs**
+### Deploy na Vercel (Recomendado)
 
-### Health Check
+1. **Conecte o repositório**
+
+   - Acesse [vercel.com](https://vercel.com)
+   - Importe o projeto do GitHub
+
+2. **Configure as variáveis de ambiente**
+
+   - Vá em **Settings → Environment Variables**
+   - Adicione `DATABASE_URL` com sua connection string
+
+3. **Deploy automático**
+   - Cada push na branch `main` dispara um novo deploy
+
+### Deploy manual
+
+```bash
+# Instale a CLI da Vercel
+npm i -g vercel
+
+# Faça login
+vercel login
+
+# Deploy
+vercel --prod
+```
+
+---
+
+## 📚 API Reference
+
+### Marcas
 
 ```http
-GET /api/db-health
+GET /api/marcas
 ```
 
-Retorna `{ ok: true }` se conectado, ou erro sem expor segredos.
+**Resposta:**
 
-## �📖 API Documentation
+```json
+[
+  { "Label": "Ford", "Value": "22" },
+  { "Label": "Chevrolet", "Value": "23" }
+]
+```
 
-### Endpoints Principais
-
-#### 🏷️ Marcas
+### Modelos Agrupados
 
 ```http
-GET /api/marcas?tipoVeiculo=1
+GET /api/modelos-agrupados/{marcaId}
 ```
 
-- **tipoVeiculo**: 1 (carros), 2 (motos), 3 (caminhões)
+**Parâmetros:**
 
-#### 🚗 Modelos
+| Parâmetro | Tipo   | Descrição   |
+| --------- | ------ | ----------- |
+| marcaId   | string | ID da marca |
+
+**Resposta:**
+
+```json
+{
+  "modelosBase": [
+    {
+      "Label": "Ranger",
+      "Value": "Ranger",
+      "totalVersoes": 88,
+      "versoes": [
+        {
+          "codigo": 10741,
+          "nome": "Ranger Limited 3.2...",
+          "versao": "Limited 3.2..."
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Anos do Modelo
 
 ```http
-GET /api/modelos?marca=1&tipoVeiculo=1
+GET /api/anos/{marcaId}/{modeloId}
 ```
 
-#### 📅 Anos
+**Resposta:**
+
+```json
+[
+  { "Label": "2024 Diesel", "Value": "2024-3" },
+  { "Label": "2023 Diesel", "Value": "2023-3" }
+]
+```
+
+### Consultar e Salvar
 
 ```http
-GET /api/anos?marca=1&modelo=1&tipoVeiculo=1
+POST /api/consultar-salvar
 ```
 
-#### 📊 Histórico
+**Body:**
+
+```json
+{
+  "marcaId": "22",
+  "modeloId": "10741",
+  "anoId": "2014-3",
+  "meses": 24
+}
+```
+
+**Resposta:**
+
+```json
+{
+  "success": true,
+  "registrosSalvos": 24,
+  "registrosSimulados": 23,
+  "taxaSucesso": "100.00%"
+}
+```
+
+### Histórico do Veículo
 
 ```http
-GET /api/historico?marca=1&modelo=1&ano=2020-1&nomeMarca=FIAT&nomeModelo=UNO&nomeAno=2020
+GET /api/historico-veiculo?marca={marca}&modelo={modelo}&ano={ano}&meses={meses}
 ```
 
-#### 📈 Dashboard
+**Resposta:**
+
+```json
+{
+  "success": true,
+  "veiculo": {
+    "marca": "Ford",
+    "modelo": "Ranger Limited 3.2...",
+    "ano": "2014 Diesel"
+  },
+  "historico": [
+    {
+      "preco": "R$ 107.120,00",
+      "preco_numerico": 107120,
+      "data_consulta": "2025-11-01"
+    }
+  ]
+}
+```
+
+### Listar Veículos
 
 ```http
-GET /api/dashboard/1/1?ano=2020
+GET /api/veiculos
 ```
 
-### Endpoints de Sistema
+**Resposta:**
 
-#### 🔍 Health Check
+```json
+{
+  "success": true,
+  "veiculos": [...],
+  "totalVeiculos": 3
+}
+```
+
+### Deletar Veículo
 
 ```http
-GET /health
+DELETE /api/veiculos/deletar
 ```
 
-#### 📊 Cache Stats
+**Body:**
 
-```http
-GET /api/cache/stats
+```json
+{
+  "codigoMarca": "22",
+  "codigoModelo": "10741",
+  "anoModelo": "2014-3"
+}
 ```
 
-#### 🧹 Limpar Cache (Dev)
+---
 
-```http
-POST /api/cache/clear
-```
-
-## 🏗️ Arquitetura do Sistema
+## 📁 Estrutura do Projeto
 
 ```text
 fipe_monitoring/
-├── backend/
-│   ├── config/          # Configurações (logger, cache)
-│   ├── scripts/         # Scripts utilitários
-│   ├── app.js          # Aplicação principal
-│   ├── routes.js       # Rotas da API
-│   ├── db.js           # Gerenciamento do banco
-│   └── utils.js        # Funções utilitárias
-├── frontend/
-│   ├── index.html      # Página principal
-│   ├── dashboard.html  # Dashboard interativo
-│   ├── todos.html      # Visualização de registros
-│   ├── app.js          # JavaScript principal
-│   ├── dashboard.js    # JavaScript do dashboard
-│   └── style.css       # Estilos modernos
-├── data/               # Banco SQLite
-├── logs/               # Arquivos de log
-└── backups/            # Backups automáticos
+├── 📂 pages/
+│   ├── 📂 api/
+│   │   ├── 📂 anos/
+│   │   │   └── [marca]/
+│   │   │       └── [modelo].js    # GET anos disponíveis
+│   │   ├── 📂 modelos/
+│   │   │   └── [marca].js         # GET modelos da marca
+│   │   ├── 📂 modelos-agrupados/
+│   │   │   └── [marca].js         # GET modelos agrupados
+│   │   ├── 📂 veiculos/
+│   │   │   └── deletar.js         # DELETE veículo
+│   │   ├── consultar-salvar.js    # POST consulta FIPE
+│   │   ├── historico-veiculo.js   # GET histórico
+│   │   ├── marcas.js              # GET marcas
+│   │   └── veiculos.js            # GET veículos salvos
+│   ├── _app.js                    # App wrapper
+│   ├── index.js                   # Página inicial
+│   ├── resultado.js               # Resultado da consulta
+│   ├── todos.js                   # Lista de veículos
+│   └── dashboard.js               # Dashboard
+│
+├── 📂 lib/
+│   ├── db.js                      # Conexão PostgreSQL
+│   ├── fipe.js                    # Integração FIPE API
+│   └── utils.js                   # Funções utilitárias
+│
+├── 📂 styles/
+│   ├── globals.css                # Estilos globais
+│   ├── Home.module.css            # Estilos página inicial
+│   ├── Resultado.module.css       # Estilos resultado
+│   ├── Todos.module.css           # Estilos lista
+│   └── Dashboard.module.css       # Estilos dashboard
+│
+├── 📂 migrations/
+│   ├── migrate.js                 # Script de migração
+│   └── *.sql                      # Arquivos SQL
+│
+├── 📄 .env.example                # Exemplo de variáveis
+├── 📄 next.config.js              # Configuração Next.js
+├── 📄 vercel.json                 # Configuração Vercel
+├── 📄 package.json                # Dependências
+└── 📄 README.md                   # Documentação
 ```
 
-## 🎨 Interface do Usuário
-
-### 🏠 Página Principal
-
-- Formulário inteligente com autocomplete
-- Validação em tempo real
-- Feedback visual para o usuário
-- Estatísticas resumidas dos dados
-
-### 📊 Dashboard
-
-- Gráficos interativos (linha, barra, área)
-- Análise preditiva com indicador de confiança
-- Alertas automáticos sobre tendências
-- Controles avançados de visualização
-- Exportação de gráficos
-- Modo tela cheia
-
-### 📋 Registros
-
-- Tabela paginada e filtrada
-- Ordenação por qualquer coluna
-- Estatísticas em tempo real
-- Exportação para CSV
-- Interface responsiva
-
-## 🔧 Scripts Disponíveis
-
-```bash
-# Desenvolvimento
-npm run dev
-
-# Produção
-npm start
-
-# Configuração inicial
-npm run setup
-
-# Backup do banco
-npm run backup
-
-# Testes (quando implementados)
-npm test
-```
-
-## 📊 Funcionalidades de Análise
-
-### 📈 Análise Preditiva
-
-- **Regressão Linear**: Previsão baseada em tendência histórica
-- **Indicador de Confiança**: Coeficiente R² para avaliar precisão
-- **Previsão Customizável**: De 1 a 12 meses à frente
-
-### 🚨 Sistema de Alertas
-
-- **Variação Significativa**: Detecta mudanças > 15%
-- **Alta Volatilidade**: Identifica preços instáveis
-- **Picos e Vales**: Marca máximos e mínimos históricos
-- **Tendências**: Classifica como alta, baixa ou estável
-
-### 📊 Estatísticas Avançadas
-
-- Preço atual vs histórico
-- Variação percentual total
-- Preço médio do período
-- Volatilidade (desvio padrão)
-- Máximo e mínimo históricos
-
-## 🔒 Segurança e Performance
-
-### 🛡️ Medidas de Segurança
-
-- **Helmet.js**: Headers de segurança
-- **Rate Limiting**: Proteção contra spam
-- **Validação de Entrada**: Sanitização de dados
-- **Logs de Segurança**: Monitoramento de tentativas suspeitas
-
-### ⚡ Otimizações de Performance
-
-- **Cache Inteligente**: Redis-like com TTL configurável
-- **Lazy Loading**: Carregamento sob demanda
-- **Compressão**: Gzip para assets estáticos
-- **Database Indexing**: Consultas otimizadas
-
-## 🔄 Sistema de Cache
-
-O sistema implementa cache em múltiplas camadas:
-
-- **Consultas FIPE**: 1-10 minutos dependendo do tipo
-- **Dados de Dashboard**: 5 minutos
-- **Listas (marcas/modelos)**: 1 hora
-- **Registros Completos**: 3 minutos
-
-## 📝 Logs e Monitoramento
-
-### Níveis de Log
-
-- **Error**: Erros críticos
-- **Warn**: Avisos importantes
-- **Info**: Informações gerais
-- **Debug**: Detalhes técnicos
-
-### Rotação de Logs
-
-- Arquivos limitados a 5MB
-- Mantém até 5 arquivos históricos
-- Separação entre logs gerais e de erro
-
-## 🔄 Backup e Recuperação
-
-```bash
-# Backup manual
-npm run backup
-
-# Backups automáticos mantêm:
-# - 10 backups mais recentes
-# - Limpeza automática de arquivos antigos
-# - Compressão opcional para economizar espaço
-```
-
-## 🐛 Troubleshooting
-
-### Problemas Comuns
-
-#### ❌ Erro de conexão com FIPE
-
-```bash
-# Verificar conectividade
-curl -I https://veiculos.fipe.org.br
-
-# Verificar logs
-tail -f logs/error.log
-```
-
-#### ❌ Banco de dados corrompido
-
-```bash
-# Restaurar backup
-cp backups/database_backup_YYYY-MM-DD.db data/database.db
-```
-
-#### ❌ Cache não funcionando
-
-```bash
-# Limpar cache
-curl -X POST http://localhost:3000/api/cache/clear
-
-# Verificar status
-curl http://localhost:3000/api/cache/stats
-```
+---
 
 ## 🤝 Contribuição
 
-1. Fork o projeto
+Contribuições são bem-vindas! Para contribuir:
+
+1. Faça um fork do projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
 3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 📄 Licença
+### Padrões de Commit
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para detalhes.
-
-## 🔗 Links Úteis
-
-- [API FIPE Oficial](https://veiculos.fipe.org.br/)
-- [Chart.js Documentation](https://www.chartjs.org/docs/)
-- [Express.js Guide](https://expressjs.com/en/guide/)
-- [SQLite Documentation](https://sqlite.org/docs.html)
-
-## 👥 Suporte
-
-Para suporte e dúvidas:
-
-- 📧 Email: [seu-email@exemplo.com]
-- 💬 Issues: [GitHub Issues](https://github.com/luisguedesdev/fipe_monitoring/issues)
-- 📖 Wiki: [GitHub Wiki](https://github.com/luisguedesdev/fipe_monitoring/wiki)
+- `feat:` Nova funcionalidade
+- `fix:` Correção de bug
+- `docs:` Documentação
+- `style:` Formatação
+- `refactor:` Refatoração
+- `test:` Testes
+- `chore:` Manutenção
 
 ---
 
-⭐ **Desenvolvido com ❤️ para a comunidade brasileira de análise automotiva**
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+---
+
+## 👨‍💻 Autor
+
+**Luis Guedes**
+
+[![GitHub](https://img.shields.io/badge/GitHub-luisguedesdev-181717?style=flat-square&logo=github)](https://github.com/luisguedesdev)
+
+---
+
+<div align="center">
+
+⭐ **Se este projeto te ajudou, considere dar uma estrela!** ⭐
+
+</div>

@@ -1,18 +1,9 @@
 {
   "version": 2,
-  "name": "fipe-monitoring-nextjs",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
+  "framework": "nextjs",
   "functions": {
     "pages/api/**/*.js": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
   }
 }
