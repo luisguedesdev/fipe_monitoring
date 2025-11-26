@@ -155,7 +155,10 @@ export default function TodosVeiculos() {
     <div className={styles.container}>
       <Head>
         <title>Todos os Veículos - FIPE Monitor</title>
-        <meta name="description" content="Lista de todos os veículos monitorados" />
+        <meta
+          name="description"
+          content="Lista de todos os veículos monitorados"
+        />
       </Head>
 
       {/* Header */}
@@ -166,7 +169,8 @@ export default function TodosVeiculos() {
           </Link>
           <h1>📋 Veículos Monitorados</h1>
           <p>
-            {veiculos.length} veículo{veiculos.length !== 1 ? "s" : ""} cadastrado
+            {veiculos.length} veículo{veiculos.length !== 1 ? "s" : ""}{" "}
+            cadastrado
             {veiculos.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -249,7 +253,9 @@ export default function TodosVeiculos() {
                   className={styles.veiculoCard}
                 >
                   <div className={styles.veiculoHeader}>
-                    <span className={styles.veiculoMarca}>{veiculo.nomeMarca}</span>
+                    <span className={styles.veiculoMarca}>
+                      {veiculo.nomeMarca}
+                    </span>
                     <span
                       className={`${styles.veiculoVariacao} ${
                         veiculo.variacao > 0

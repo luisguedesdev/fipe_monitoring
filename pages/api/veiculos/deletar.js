@@ -24,7 +24,11 @@ export default async function handler(req, res) {
       RETURNING id
     `;
 
-    const result = await db.query(query, [codigoMarca, codigoModelo, anoModelo]);
+    const result = await db.query(query, [
+      codigoMarca,
+      codigoModelo,
+      anoModelo,
+    ]);
 
     res.json({
       success: true,
