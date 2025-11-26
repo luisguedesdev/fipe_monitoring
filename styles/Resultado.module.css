@@ -1,0 +1,451 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, sans-serif;
+}
+
+/* Loading */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #e63946;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.breadcrumb a {
+  color: #e63946;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+/* Vehicle Header */
+.vehicleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.vehicleInfo {
+  flex: 1;
+}
+
+.vehicleType {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.vehicleTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 5px 0;
+}
+
+.vehicleYear {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.priceBox {
+  text-align: right;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px 30px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.priceLabel {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  margin-bottom: 5px;
+}
+
+.priceValue {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #4ecdc4;
+}
+
+.variation {
+  display: block;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.variationUp {
+  color: #2ecc71;
+}
+
+.variationDown {
+  color: #e74c3c;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.statIcon {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.statLabel {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* Period Selector */
+.periodSelector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  background: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 10px;
+}
+
+.periodSelector span {
+  font-weight: 600;
+  color: #333;
+}
+
+.periodButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.periodButton {
+  padding: 8px 20px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.periodButton:hover {
+  border-color: #e63946;
+  color: #e63946;
+}
+
+.periodButtonActive {
+  background: #e63946;
+  border-color: #e63946;
+  color: white;
+}
+
+/* Chart Section */
+.chartSection {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+}
+
+.sectionTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 20px 0;
+}
+
+.chartContainer {
+  height: 350px;
+  position: relative;
+}
+
+/* Forecast Section */
+.forecastSection {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.forecastSection .sectionTitle {
+  color: white;
+}
+
+.forecastGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.forecastCard {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+}
+
+.forecastPeriod {
+  display: block;
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 10px;
+}
+
+.forecastValue {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.forecastTrend {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.trendUp {
+  background: rgba(46, 204, 113, 0.3);
+}
+
+.trendDown {
+  background: rgba(231, 76, 60, 0.3);
+}
+
+.forecastDisclaimer {
+  font-size: 12px;
+  opacity: 0.7;
+  text-align: center;
+  margin: 0;
+}
+
+/* History Table */
+.historySection {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.historyTable th,
+.historyTable td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.historyTable th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.historyTable tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.priceCell {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.variationCell {
+  font-weight: 600;
+}
+
+/* Navigation */
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.navButton,
+.navButtonPrimary {
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.navButton {
+  background: #f8f9fa;
+  color: #333;
+  border: 2px solid #ddd;
+}
+
+.navButton:hover {
+  background: #eee;
+  border-color: #ccc;
+}
+
+.navButtonPrimary {
+  background: #e63946;
+  color: white;
+  border: none;
+}
+
+.navButtonPrimary:hover {
+  background: #d62839;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .vehicleHeader {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .priceBox {
+    text-align: left;
+    width: 100%;
+  }
+
+  .vehicleTitle {
+    font-size: 1.8rem;
+  }
+
+  .priceValue {
+    font-size: 1.8rem;
+  }
+
+  .navigation {
+    flex-direction: column;
+  }
+
+  .navButton,
+  .navButtonPrimary {
+    text-align: center;
+  }
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  margin: 40px 0;
+}
+
+.emptyState h2 {
+  color: #1a1a2e;
+  margin-bottom: 10px;
+}
+
+.emptyState p {
+  color: #666;
+  margin-bottom: 30px;
+}

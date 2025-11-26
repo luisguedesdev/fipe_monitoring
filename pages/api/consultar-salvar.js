@@ -1,199 +1,202 @@
-import axios from "axios";
-import db, { salvarConsulta } from "../../lib/db";
+import {
+  consultarPrecoComFallback,
+  getTabelaPorMes,
+  getTabelaReferencia,
+} from "../../lib/fipe";
+import { gerarDatasRetroativas, formatarData } from "../../lib/utils";
+import db from "../../lib/db";
 
+// Handler principal da rota
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { marcaId, modeloId, anoId, meses } = req.body;
+  const { marcaId, modeloId, anoId, meses = 24 } = req.body;
 
-  if (!marcaId || !modeloId || !anoId || !meses) {
+  if (!marcaId || !modeloId || !anoId) {
     return res.status(400).json({
       success: false,
-      error: "Parâmetros obrigatórios: marcaId, modeloId, anoId, meses",
+      error: "Parâmetros obrigatórios: marcaId, modeloId, anoId",
     });
   }
 
   try {
+    // Inicializar contadores e arrays
     let registrosSalvos = 0;
+    let erros = 0;
+    let simulados = 0;
     const resultados = [];
+    const datasConsulta = gerarDatasRetroativas(meses);
 
-    // Simular consultas retroativas (meses anteriores)
-    for (let i = 0; i < meses; i++) {
+    console.log("🔄 Iniciando processo de consulta e salvamento");
+    console.log(
+      `📅 Período: ${formatarData(datasConsulta[0])} até ${formatarData(
+        datasConsulta[datasConsulta.length - 1]
+      )}`
+    );
+
+    // Obter tabela FIPE mais recente
+    console.log("\n🔍 Obtendo tabela FIPE mais recente...");
+    let tabelaFIPE;
+    try {
+      tabelaFIPE = await getTabelaReferencia();
+      console.log(`✅ Usando tabela: ${tabelaFIPE.Mes}`);
+    } catch (error) {
+      console.log("⚠️ Erro ao obter tabela, usando código padrão");
+      tabelaFIPE = { Codigo: 320, Mes: "novembro/2025" };
+    }
+
+    // Limpar registros antigos
+    console.log("\n🗑️ Removendo registros antigos...");
+    try {
+      const deleteResult = await db.query(
+        `DELETE FROM historico_precos 
+         WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3`,
+        [marcaId, modeloId, anoId]
+      );
+      console.log(
+        `✅ ${deleteResult.rowCount || 0} registros antigos removidos`
+      );
+    } catch (deleteError) {
+      console.error("⚠️ Erro ao limpar registros:", deleteError.message);
+    }
+
+    // Processar cada mês
+    for (let i = 0; i < datasConsulta.length; i++) {
+      const dataConsulta = datasConsulta[i];
+      const mesAno = formatarData(dataConsulta);
+
       try {
-        const response = await axios.post(
-          "https://veiculos.fipe.org.br/api/veiculos/ConsultarValorComTipoVeiculo",
+        console.log(
+          `\n📊 Processando ${mesAno} (${i + 1}/${datasConsulta.length})...`
+        );
+
+        // Obter tabela para o mês específico
+        const tabelaMes = await getTabelaPorMes(i);
+
+        // Consultar preço (com fallback para simulação)
+        console.log(`🔍 Consultando FIPE para ${mesAno}...`);
+        const consultaFIPE = await consultarPrecoComFallback(
           {
-            codigoTabelaReferencia: 320,
-            codigoTipoVeiculo: 1,
+            codigoTabelaReferencia: tabelaMes.Codigo,
+            codigoTipoVeiculo: 1, // Carro
             codigoMarca: marcaId,
             codigoModelo: modeloId,
             anoModelo: anoId,
             codigoTipoCombustivel: 1,
-            tipoConsulta: "tradicional",
           },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            },
-            timeout: 10000,
-          }
+          i
         );
 
-        const dadosFipe = response.data;
+        if (!consultaFIPE.success) {
+          throw new Error(`Falha ao consultar FIPE: ${consultaFIPE.error}`);
+        }
 
-        if (dadosFipe && dadosFipe.Valor) {
-          // Adicionar variação pequena no preço para simular histórico
-          const variacao = (Math.random() - 0.5) * 0.1; // ±5% de variação
-          const precoBase = parseFloat(
-            dadosFipe.Valor.replace(/[^\d,]/g, "").replace(",", ".")
+        if (consultaFIPE.simulado) {
+          simulados++;
+        }
+
+        // Salvar no banco
+        console.log(`💾 Salvando dados de ${mesAno}...`);
+        const query = `
+          INSERT INTO historico_precos
+          (codigo_tabela_referencia, codigo_tipo_veiculo, codigo_marca, codigo_modelo,
+           ano_modelo, preco, codigo_tipo_combustivel, nome_marca, nome_modelo, nome_ano, data_consulta)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          RETURNING id
+        `;
+
+        const valores = [
+          tabelaMes.Codigo,
+          1,
+          marcaId,
+          modeloId,
+          anoId,
+          consultaFIPE.preco,
+          1,
+          consultaFIPE.marca || "Marca",
+          consultaFIPE.modelo || "Modelo",
+          anoId,
+          dataConsulta,
+        ];
+
+        const result = await db.query(query, valores);
+
+        if (result.rows && result.rows.length > 0) {
+          registrosSalvos++;
+          resultados.push({
+            mes: i,
+            mesAno,
+            preco: consultaFIPE.preco,
+            data: dataConsulta.toISOString(),
+            id: result.rows[0].id,
+            simulado: consultaFIPE.simulado || false,
+          });
+
+          console.log(
+            `✅ ${mesAno} salvo com sucesso! (${registrosSalvos}/${
+              datasConsulta.length
+            })${consultaFIPE.simulado ? " [simulado]" : ""}`
           );
-          const precoVariado = precoBase * (1 + variacao);
-          const precoFormatado = `R$ ${precoVariado.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`;
-
-          // Salvar no banco com data retroativa
-          const dataConsulta = new Date();
-          dataConsulta.setMonth(dataConsulta.getMonth() - i);
-
-          const query = `
-            INSERT INTO historico_precos
-            (codigo_tabela_referencia, codigo_tipo_veiculo, codigo_marca, codigo_modelo,
-             ano_modelo, preco, codigo_tipo_combustivel, nome_marca, nome_modelo, nome_ano, data_consulta)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            RETURNING id
-          `;
-
-          const valores = [
-            320, // codigo_tabela_referencia
-            1, // codigo_tipo_veiculo
-            marcaId,
-            modeloId,
-            anoId,
-            precoFormatado,
-            1, // codigo_tipo_combustivel
-            dadosFipe.Marca,
-            dadosFipe.Modelo,
-            dadosFipe.AnoModelo,
-            dataConsulta,
-          ];
-
-          // Verificar se já existe registro para esta data
-          const checkQuery = `
-            SELECT id FROM historico_precos
-            WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3
-            AND DATE(data_consulta) = DATE($4)
-          `;
-
-          const existingRecord = await db.query(checkQuery, [
-            marcaId,
-            modeloId,
-            anoId,
-            dataConsulta,
-          ]);
-
-          if (existingRecord.rows.length === 0) {
-            const result = await db.query(query, valores);
-
-            if (result.rows.length > 0) {
-              registrosSalvos++;
-              resultados.push({
-                mes: i,
-                preco: precoFormatado,
-                data: dataConsulta.toISOString(),
-              });
-            }
-          }
+        } else {
+          throw new Error("Falha ao inserir registro");
         }
 
-        // Delay entre requisições para não sobrecarregar a API
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Delay entre registros (exceto último)
+        if (i < datasConsulta.length - 1) {
+          const delay = 1500 + Math.random() * 1000;
+          console.log(`⏳ Aguardando ${Math.round(delay / 1000)}s...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
       } catch (error) {
-        console.error(`Erro na consulta do mês ${i}:`, error);
-
-        // Fallback: gerar dados simulados
-        try {
-          const precoBase = 100000 + Math.random() * 50000;
-          const precoFormatado = `R$ ${precoBase.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`;
-
-          const dataConsulta = new Date();
-          dataConsulta.setMonth(dataConsulta.getMonth() - i);
-
-          const query = `
-            INSERT INTO historico_precos
-            (codigo_tabela_referencia, codigo_tipo_veiculo, codigo_marca, codigo_modelo,
-             ano_modelo, preco, codigo_tipo_combustivel, nome_marca, nome_modelo, nome_ano, data_consulta)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            RETURNING id
-          `;
-
-          const valores = [
-            320,
-            1,
-            marcaId,
-            modeloId,
-            anoId,
-            precoFormatado,
-            1,
-            "Ford", // fallback
-            "Ranger Limited", // fallback
-            anoId,
-            dataConsulta,
-          ];
-
-          // Verificar se já existe registro para esta data (fallback)
-          const checkQuery = `
-            SELECT id FROM historico_precos
-            WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3
-            AND DATE(data_consulta) = DATE($4)
-          `;
-
-          const existingRecord = await db.query(checkQuery, [
-            marcaId,
-            modeloId,
-            anoId,
-            dataConsulta,
-          ]);
-
-          if (existingRecord.rows.length === 0) {
-            const result = await db.query(query, valores);
-
-            if (result.rows.length > 0) {
-              registrosSalvos++;
-              resultados.push({
-                mes: i,
-                preco: precoFormatado,
-                data: dataConsulta.toISOString(),
-                simulado: true,
-              });
-            }
-          }
-        } catch (dbError) {
-          console.error(`Erro ao salvar dados simulados do mês ${i}:`, dbError);
-        }
+        erros++;
+        console.error(`❌ Erro ao processar ${mesAno}:`, error.message);
       }
     }
 
-    res.json({
-      success: true,
+    // Resumo final da operação
+    const total = datasConsulta.length;
+    const sucesso =
+      registrosSalvos === total || (registrosSalvos > 0 && erros === 0);
+    const percentualSucesso = ((registrosSalvos / total) * 100).toFixed(1);
+
+    const status = {
+      success: sucesso,
       registrosSalvos,
-      periodo: `${meses} meses`,
+      simulados,
+      erros,
+      total,
+      percentualSucesso,
       resultados,
-      message: `${registrosSalvos} registros salvos com sucesso`,
-    });
+      periodo: {
+        inicio: formatarData(datasConsulta[0]),
+        fim: formatarData(datasConsulta[datasConsulta.length - 1]),
+      },
+      message: sucesso
+        ? `✅ ${registrosSalvos} registros salvos com sucesso!${
+            simulados > 0 ? ` (${simulados} simulados)` : ""
+          }`
+        : `⚠️ ${registrosSalvos} de ${total} registros salvos. ${erros} falhas.`,
+    };
+
+    // Log detalhado
+    console.log("\n📊 Resumo da operação:");
+    console.log(`Período: ${status.periodo.inicio} até ${status.periodo.fim}`);
+    console.log(`Total esperado: ${total}`);
+    console.log(`Salvos: ${registrosSalvos}`);
+    console.log(`Simulados: ${simulados}`);
+    console.log(`Erros: ${erros}`);
+    console.log(`Taxa de sucesso: ${percentualSucesso}%`);
+
+    res.json(status);
   } catch (error) {
-    console.error("Erro na consulta e salvamento:", error);
+    console.error("\n❌ Erro crítico na operação:", error);
+
     res.status(500).json({
       success: false,
       error: error.message,
+      message: "Falha ao processar a requisição. Tente novamente.",
     });
   }
 }

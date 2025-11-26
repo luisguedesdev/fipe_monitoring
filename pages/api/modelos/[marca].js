@@ -12,16 +12,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await axios.post(
-      "https://veiculos.fipe.org.br/api/veiculos/ConsultarModelos",
-      {
-        codigoTabelaReferencia: 320,
-        codigoTipoVeiculo: 1,
-        codigoMarca: parseInt(marca),
-      },
+    // Usando API Parallelum (mais confiável)
+    const response = await axios.get(
+      `https://parallelum.com.br/fipe/api/v1/carros/marcas/${marca}/modelos`,
       {
         headers: {
-          "Content-Type": "application/json",
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
@@ -29,7 +24,15 @@ export default async function handler(req, res) {
       }
     );
 
-    res.status(200).json(response.data);
+    // Converter formato Parallelum para formato FIPE
+    // Parallelum: { modelos: [{ codigo: 1, nome: "Model" }] }
+    // FIPE: { Modelos: [{ Label: "Model", Value: 1 }] }
+    const modelos = response.data.modelos.map((modelo) => ({
+      Label: modelo.nome,
+      Value: modelo.codigo,
+    }));
+
+    res.status(200).json({ Modelos: modelos, Anos: response.data.anos || [] });
   } catch (error) {
     console.error("Erro ao buscar modelos:", error);
     res.status(500).json({ error: "Erro ao consultar modelos" });

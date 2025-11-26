@@ -19,20 +19,20 @@
     "migrate:create": "node migrations/migrate.js create"
   },
   "dependencies": {
-    "next": "^14.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "axios": "^1.8.3",
     "chart.js": "^4.4.0",
-    "react-chartjs-2": "^5.2.0",
     "date-fns": "^2.29.3",
-    "dotenv": "^16.3.1",
-    "pg": "^8.11.3",
-    "winston": "^3.11.0",
-    "node-cache": "^5.1.2",
+    "dotenv": "^16.6.1",
     "express-rate-limit": "^7.1.0",
     "helmet": "^7.1.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "next": "^14.0.0",
+    "node-cache": "^5.1.2",
+    "pg": "^8.11.3",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "eslint": "^8.50.0",
