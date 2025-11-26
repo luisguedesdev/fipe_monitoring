@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Link from "next/link";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -40,6 +41,7 @@ export default function ResultadoFipe() {
     if (marca && modelo && ano) {
       carregarDados();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marca, modelo, ano, periodoSelecionado]);
 
   const carregarDados = async () => {
@@ -201,9 +203,9 @@ export default function ResultadoFipe() {
         <div className={styles.emptyState}>
           <h2>Nenhum dado encontrado</h2>
           <p>Não há histórico de preços para este veículo.</p>
-          <a href="/" className={styles.navButtonPrimary}>
+          <Link href="/" className={styles.navButtonPrimary}>
             ← Fazer nova consulta
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -225,9 +227,9 @@ export default function ResultadoFipe() {
 
       {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
-        <a href="/">Início</a>
+        <Link href="/">Início</Link>
         <span>/</span>
-        <a href="/">Tabela FIPE</a>
+        <Link href="/">Tabela FIPE</Link>
         <span>/</span>
         <span>
           {veiculo?.marca} {veiculo?.modelo}
@@ -442,12 +444,12 @@ export default function ResultadoFipe() {
 
       {/* Navegação */}
       <div className={styles.navigation}>
-        <a href="/" className={styles.navButton}>
+        <Link href="/" className={styles.navButton}>
           ← Nova Consulta
-        </a>
-        <a href="/dashboard" className={styles.navButtonPrimary}>
+        </Link>
+        <Link href="/dashboard" className={styles.navButtonPrimary}>
           Ver Dashboard Completo →
-        </a>
+        </Link>
       </div>
     </div>
   );

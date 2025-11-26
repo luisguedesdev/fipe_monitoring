@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "../styles/Home.module.css";
 
@@ -288,12 +289,12 @@ export default function Home() {
       </div>
 
       <div className={styles.navigation}>
-        <a href="/dashboard" className={styles.navLink}>
+        <Link href="/dashboard" className={styles.navLink}>
           📊 Dashboard
-        </a>
-        <a href="/todos" className={styles.navLink}>
+        </Link>
+        <Link href="/todos" className={styles.navLink}>
           📋 Ver Registros
-        </a>
+        </Link>
       </div>
     </div>
   );

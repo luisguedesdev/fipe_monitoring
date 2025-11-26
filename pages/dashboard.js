@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -106,10 +107,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     carregarModelos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marcaSelecionada, dadosBanco]);
 
   useEffect(() => {
     carregarAnos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modeloSelecionado, dadosBanco]);
 
   const analisarDados = () => {
@@ -371,12 +374,12 @@ export default function Dashboard() {
       </div>
 
       <div className={styles.navigation}>
-        <a href="/" className={styles.navLink}>
+        <Link href="/" className={styles.navLink}>
           🔍 Nova Consulta
-        </a>
-        <a href="/todos" className={styles.navLink}>
+        </Link>
+        <Link href="/todos" className={styles.navLink}>
           📋 Ver Registros
-        </a>
+        </Link>
       </div>
     </div>
   );
