@@ -19,6 +19,8 @@ export default function TodosVeiculos() {
   const [veiculos, setVeiculos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroMarca, setFiltroMarca] = useState("");
+  const [filtroAno, setFiltroAno] = useState("");
+  const [filtroBusca, setFiltroBusca] = useState("");
   const [ordenacao, setOrdenacao] = useState("recente");
   const [deletando, setDeletando] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -310,12 +312,22 @@ export default function TodosVeiculos() {
 
   // Filtrar e ordenar veículos
   const veiculosFiltrados = veiculos
-    .filter((v) =>
-      filtroMarca
-        ? v.nomeMarca?.toLowerCase().includes(filtroMarca.toLowerCase()) ||
-          v.nomeModelo?.toLowerCase().includes(filtroMarca.toLowerCase())
-        : true
-    )
+    .filter((v) => {
+      // Filtro de busca (texto livre)
+      const matchBusca = filtroBusca
+        ? v.nomeMarca?.toLowerCase().includes(filtroBusca.toLowerCase()) ||
+          v.nomeModelo?.toLowerCase().includes(filtroBusca.toLowerCase())
+        : true;
+
+      // Filtro de marca (select)
+      const matchMarca = filtroMarca ? v.nomeMarca === filtroMarca : true;
+
+      // Filtro de ano (select) - extrair ano do anoModelo (ex: "2014-3" -> "2014")
+      const anoVeiculo = v.anoModelo?.toString().split("-")[0];
+      const matchAno = filtroAno ? anoVeiculo === filtroAno : true;
+
+      return matchBusca && matchMarca && matchAno;
+    })
     .sort((a, b) => {
       switch (ordenacao) {
         case "recente":
@@ -339,6 +351,22 @@ export default function TodosVeiculos() {
 
   // Obter marcas únicas para o filtro
   const marcasUnicas = [...new Set(veiculos.map((v) => v.nomeMarca))].sort();
+
+  // Obter anos únicos para o filtro (extraindo do formato "2014-3")
+  const anosUnicos = [
+    ...new Set(veiculos.map((v) => v.anoModelo?.toString().split("-")[0])),
+  ]
+    .filter(Boolean)
+    .sort((a, b) => b - a); // Ordenar decrescente
+
+  // Limpar filtros
+  const limparFiltros = () => {
+    setFiltroBusca("");
+    setFiltroMarca("");
+    setFiltroAno("");
+  };
+
+  const temFiltrosAtivos = filtroBusca || filtroMarca || filtroAno;
 
   if (loading) {
     return (
@@ -456,10 +484,42 @@ export default function TodosVeiculos() {
             <input
               type="text"
               placeholder="Buscar por marca ou modelo..."
-              value={filtroMarca}
-              onChange={(e) => setFiltroMarca(e.target.value)}
+              value={filtroBusca}
+              onChange={(e) => setFiltroBusca(e.target.value)}
               className={styles.inputBusca}
             />
+          </div>
+
+          <div className={styles.filtroGroup}>
+            <label>🏭 Marca</label>
+            <select
+              value={filtroMarca}
+              onChange={(e) => setFiltroMarca(e.target.value)}
+              className={styles.selectOrdenacao}
+            >
+              <option value="">Todas as marcas</option>
+              {marcasUnicas.map((marca) => (
+                <option key={marca} value={marca}>
+                  {marca}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.filtroGroup}>
+            <label>📅 Ano</label>
+            <select
+              value={filtroAno}
+              onChange={(e) => setFiltroAno(e.target.value)}
+              className={styles.selectOrdenacao}
+            >
+              <option value="">Todos os anos</option>
+              {anosUnicos.map((ano) => (
+                <option key={ano} value={ano}>
+                  {ano}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className={styles.filtroGroup}>
@@ -478,26 +538,48 @@ export default function TodosVeiculos() {
               <option value="registros">Mais registros</option>
             </select>
           </div>
+
+          {temFiltrosAtivos && (
+            <button className={styles.btnLimparFiltros} onClick={limparFiltros}>
+              ✕ Limpar filtros
+            </button>
+          )}
         </div>
 
         {/* Resumo */}
         <div className={styles.resumoCards}>
           <div className={styles.resumoCard}>
             <span className={styles.resumoIcon}>🚗</span>
-            <span className={styles.resumoValor}>{veiculos.length}</span>
-            <span className={styles.resumoLabel}>Veículos</span>
+            <span className={styles.resumoValor}>
+              {veiculosFiltrados.length}
+              {temFiltrosAtivos &&
+                veiculosFiltrados.length !== veiculos.length && (
+                  <small style={{ fontSize: "12px", opacity: 0.7 }}>
+                    {" "}
+                    / {veiculos.length}
+                  </small>
+                )}
+            </span>
+            <span className={styles.resumoLabel}>
+              {temFiltrosAtivos ? "Filtrados" : "Veículos"}
+            </span>
           </div>
           <div className={styles.resumoCard}>
             <span className={styles.resumoIcon}>📊</span>
             <span className={styles.resumoValor}>
-              {veiculos.reduce((acc, v) => acc + v.totalRegistros, 0)}
+              {veiculosFiltrados.reduce((acc, v) => acc + v.totalRegistros, 0)}
             </span>
-            <span className={styles.resumoLabel}>Registros totais</span>
+            <span className={styles.resumoLabel}>Registros</span>
           </div>
           <div className={styles.resumoCard}>
             <span className={styles.resumoIcon}>🏷️</span>
             <span className={styles.resumoValor}>{marcasUnicas.length}</span>
             <span className={styles.resumoLabel}>Marcas</span>
+          </div>
+          <div className={styles.resumoCard}>
+            <span className={styles.resumoIcon}>📅</span>
+            <span className={styles.resumoValor}>{anosUnicos.length}</span>
+            <span className={styles.resumoLabel}>Anos</span>
           </div>
         </div>
 
@@ -507,14 +589,20 @@ export default function TodosVeiculos() {
             <span className={styles.emptyIcon}>🔍</span>
             <h2>Nenhum veículo encontrado</h2>
             <p>
-              {filtroMarca
-                ? "Tente uma busca diferente"
+              {temFiltrosAtivos
+                ? "Nenhum veículo corresponde aos filtros selecionados"
                 : "Faça sua primeira consulta na página inicial"}
             </p>
-            {isOnline && (
-              <Link href="/" className={styles.btnPrimary}>
-                Consultar veículo
-              </Link>
+            {temFiltrosAtivos ? (
+              <button onClick={limparFiltros} className={styles.btnPrimary}>
+                Limpar filtros
+              </button>
+            ) : (
+              isOnline && (
+                <Link href="/" className={styles.btnPrimary}>
+                  Consultar veículo
+                </Link>
+              )
             )}
           </div>
         ) : (
