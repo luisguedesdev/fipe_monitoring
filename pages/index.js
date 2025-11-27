@@ -8,8 +8,7 @@ import styles from "../styles/Home.module.css";
 export default function Home() {
   const router = useRouter();
   const [marcas, setMarcas] = useState([]);
-  const [modelosBase, setModelosBase] = useState([]);
-  const [versoes, setVersoes] = useState([]);
+  const [modelos, setModelos] = useState([]);
   const [anos, setAnos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingModelos, setLoadingModelos] = useState(false);
@@ -17,8 +16,7 @@ export default function Home() {
 
   // Estados dos selects
   const [marcaSelecionada, setMarcaSelecionada] = useState("");
-  const [modeloBaseSelecionado, setModeloBaseSelecionado] = useState("");
-  const [versaoSelecionada, setVersaoSelecionada] = useState("");
+  const [modeloSelecionado, setModeloSelecionado] = useState("");
   const [anoSelecionado, setAnoSelecionado] = useState("");
 
   // Carregar marcas ao montar componente
@@ -36,12 +34,12 @@ export default function Home() {
     }
   };
 
-  const carregarModelosAgrupados = async (marca) => {
+  const carregarModelos = async (marca) => {
     setLoadingModelos(true);
     try {
-      const response = await fetch(`/api/modelos-agrupados/${marca}`);
+      const response = await fetch(`/api/modelos/${marca}`);
       const data = await response.json();
-      setModelosBase(data.modelosBase || []);
+      setModelos(data.Modelos || []);
     } catch (error) {
       console.error("Erro ao carregar modelos:", error);
     } finally {
@@ -62,46 +60,28 @@ export default function Home() {
   const handleMarcaChange = (e) => {
     const marca = e.target.value;
     setMarcaSelecionada(marca);
-    setModeloBaseSelecionado("");
-    setVersaoSelecionada("");
+    setModeloSelecionado("");
     setAnoSelecionado("");
-    setModelosBase([]);
-    setVersoes([]);
+    setModelos([]);
     setAnos([]);
     if (marca) {
-      carregarModelosAgrupados(marca);
+      carregarModelos(marca);
     }
   };
 
-  const handleModeloBaseChange = (e) => {
-    const modeloBase = e.target.value;
-    setModeloBaseSelecionado(modeloBase);
-    setVersaoSelecionada("");
+  const handleModeloChange = (e) => {
+    const modelo = e.target.value;
+    setModeloSelecionado(modelo);
     setAnoSelecionado("");
     setAnos([]);
-
-    // Encontrar as versões do modelo selecionado
-    const modeloEncontrado = modelosBase.find((m) => m.Value === modeloBase);
-    if (modeloEncontrado) {
-      setVersoes(modeloEncontrado.versoes || []);
-    } else {
-      setVersoes([]);
-    }
-  };
-
-  const handleVersaoChange = (e) => {
-    const versaoId = e.target.value;
-    setVersaoSelecionada(versaoId);
-    setAnoSelecionado("");
-    setAnos([]);
-    if (versaoId && marcaSelecionada) {
-      carregarAnos(marcaSelecionada, versaoId);
+    if (modelo && marcaSelecionada) {
+      carregarAnos(marcaSelecionada, modelo);
     }
   };
 
   const consultarESalvar = async () => {
-    if (!marcaSelecionada || !versaoSelecionada || !anoSelecionado) {
-      setResultado("Selecione marca, modelo, versão e ano!");
+    if (!marcaSelecionada || !modeloSelecionado || !anoSelecionado) {
+      setResultado("Selecione marca, modelo e ano!");
       return;
     }
 
@@ -116,7 +96,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           marcaId: marcaSelecionada,
-          modeloId: versaoSelecionada,
+          modeloId: modeloSelecionado,
           anoId: anoSelecionado,
           meses: 24,
         }),
@@ -128,13 +108,13 @@ export default function Home() {
 
       if (data.success && data.registrosSalvos > 0) {
         router.push(
-          `/resultado?marca=${marcaSelecionada}&modelo=${versaoSelecionada}&ano=${anoSelecionado}`
+          `/resultado?marca=${marcaSelecionada}&modelo=${modeloSelecionado}&ano=${anoSelecionado}`
         );
       } else {
         setResultado(
           `✅ Consulta realizada!<br>
            📊 ${data.registrosSalvos} registros salvos<br>
-           📈 <a href="/resultado?marca=${marcaSelecionada}&modelo=${versaoSelecionada}&ano=${anoSelecionado}" style="color: #667eea;">Ver Resultado</a>`
+           📈 <a href="/resultado?marca=${marcaSelecionada}&modelo=${modeloSelecionado}&ano=${anoSelecionado}" style="color: #667eea;">Ver Resultado</a>`
         );
       }
     } catch (error) {
@@ -186,15 +166,15 @@ export default function Home() {
             </select>
           </div>
 
-          {/* Etapa 2: Modelo Base */}
+          {/* Etapa 2: Modelo */}
           <div className={styles.formGroup}>
-            <label htmlFor="selectModeloBase">
+            <label htmlFor="selectModelo">
               <span className={styles.stepNumber}>2</span> Modelo
             </label>
             <select
-              id="selectModeloBase"
-              value={modeloBaseSelecionado}
-              onChange={handleModeloBaseChange}
+              id="selectModelo"
+              value={modeloSelecionado}
+              onChange={handleModeloChange}
               disabled={!marcaSelecionada || loadingModelos}
               className={styles.select}
             >
@@ -205,55 +185,30 @@ export default function Home() {
                   ? "Selecione um modelo"
                   : "Primeiro selecione uma marca"}
               </option>
-              {modelosBase.map((modelo) => (
+              {modelos.map((modelo) => (
                 <option key={modelo.Value} value={modelo.Value}>
-                  {modelo.Label} ({modelo.totalVersoes} versões)
+                  {modelo.Label}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Etapa 3: Versão */}
-          <div className={styles.formGroup}>
-            <label htmlFor="selectVersao">
-              <span className={styles.stepNumber}>3</span> Versão
-            </label>
-            <select
-              id="selectVersao"
-              value={versaoSelecionada}
-              onChange={handleVersaoChange}
-              disabled={!modeloBaseSelecionado}
-              className={styles.select}
-            >
-              <option value="">
-                {modeloBaseSelecionado
-                  ? "Selecione uma versão"
-                  : "Primeiro selecione um modelo"}
-              </option>
-              {versoes.map((versao) => (
-                <option key={versao.codigo} value={versao.codigo}>
-                  {versao.versao}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Etapa 4: Ano */}
+          {/* Etapa 3: Ano */}
           <div className={styles.formGroup}>
             <label htmlFor="selectAno">
-              <span className={styles.stepNumber}>4</span> Ano / Combustível
+              <span className={styles.stepNumber}>3</span> Ano / Combustível
             </label>
             <select
               id="selectAno"
               value={anoSelecionado}
               onChange={(e) => setAnoSelecionado(e.target.value)}
-              disabled={!versaoSelecionada}
+              disabled={!modeloSelecionado}
               className={styles.select}
             >
               <option value="">
-                {versaoSelecionada
+                {modeloSelecionado
                   ? "Selecione o ano"
-                  : "Primeiro selecione uma versão"}
+                  : "Primeiro selecione um modelo"}
               </option>
               {anos.map((ano) => (
                 <option key={ano.Value} value={ano.Value}>
@@ -275,7 +230,7 @@ export default function Home() {
             disabled={
               loading ||
               !marcaSelecionada ||
-              !versaoSelecionada ||
+              !modeloSelecionado ||
               !anoSelecionado
             }
             className={styles.btnConsultar}

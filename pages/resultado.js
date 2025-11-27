@@ -38,9 +38,15 @@ export default function ResultadoFipe() {
   const [estatisticas, setEstatisticas] = useState(null);
   const [periodoSelecionado, setPeriodoSelecionado] = useState(12);
 
+  // Estados para sugestões de outros anos
+  const [outrosAnos, setOutrosAnos] = useState([]);
+  const [loadingOutrosAnos, setLoadingOutrosAnos] = useState(false);
+  const [adicionandoAno, setAdicionandoAno] = useState(null);
+
   useEffect(() => {
     if (marca && modelo && ano) {
       carregarDados();
+      carregarOutrosAnos();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marca, modelo, ano, periodoSelecionado]);
@@ -62,6 +68,60 @@ export default function ResultadoFipe() {
       console.error("Erro ao carregar dados:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const carregarOutrosAnos = async () => {
+    setLoadingOutrosAnos(true);
+    try {
+      const response = await fetch(
+        `/api/anos-disponiveis?marca=${marca}&modelo=${modelo}`
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        // Mostrar apenas anos não adicionados (sugestões)
+        setOutrosAnos(data.sugestoes || []);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar outros anos:", error);
+    } finally {
+      setLoadingOutrosAnos(false);
+    }
+  };
+
+  const adicionarOutroAno = async (anoId, anoLabel) => {
+    setAdicionandoAno(anoId);
+    try {
+      const response = await fetch("/api/consultar-salvar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          marcaId: marca,
+          modeloId: modelo,
+          anoId: anoId,
+          meses: 24,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remover da lista de sugestões
+        setOutrosAnos((prev) => prev.filter((a) => a.Value !== anoId));
+        alert(
+          `✅ ${anoLabel} adicionado com sucesso! ${data.registrosSalvos} registros salvos.`
+        );
+      } else {
+        alert(`❌ Erro ao adicionar: ${data.error || "Erro desconhecido"}`);
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar ano:", error);
+      alert(`❌ Erro ao adicionar: ${error.message}`);
+    } finally {
+      setAdicionandoAno(null);
     }
   };
 
@@ -424,7 +484,7 @@ export default function ResultadoFipe() {
 
                   return (
                     <tr key={index}>
-                      <td>
+                      <td className={styles.dateCell}>
                         {new Date(item.data_consulta).toLocaleDateString(
                           "pt-BR",
                           {
@@ -456,6 +516,35 @@ export default function ResultadoFipe() {
             </table>
           </div>
         </div>
+
+        {/* Sugestão de outros anos */}
+        {outrosAnos.length > 0 && (
+          <div className={styles.suggestionsSection}>
+            <h2 className={styles.sectionTitle}>🚗 Adicionar Outros Anos</h2>
+            <p className={styles.suggestionsSubtitle}>
+              Existem outros anos disponíveis para este modelo. Adicione para
+              comparar a evolução de preços.
+            </p>
+            <div className={styles.suggestionsGrid}>
+              {outrosAnos.map((anoItem) => (
+                <div key={anoItem.Value} className={styles.suggestionCard}>
+                  <span className={styles.suggestionYear}>{anoItem.Label}</span>
+                  <button
+                    className={styles.suggestionButton}
+                    onClick={() =>
+                      adicionarOutroAno(anoItem.Value, anoItem.Label)
+                    }
+                    disabled={adicionandoAno === anoItem.Value}
+                  >
+                    {adicionandoAno === anoItem.Value
+                      ? "⏳ Adicionando..."
+                      : "➕ Adicionar"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Navegação */}
         <div className={styles.navigation}>

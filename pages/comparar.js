@@ -346,7 +346,7 @@ export default function CompararVeiculos() {
         <div className={styles.periodoContainer}>
           <label>Período de análise:</label>
           <div className={styles.periodoButtons}>
-            {[3, 6, 12, 24, 36].map((meses) => (
+            {[3, 6, 12, 24].map((meses) => (
               <button
                 key={meses}
                 className={`${styles.periodoBtn} ${

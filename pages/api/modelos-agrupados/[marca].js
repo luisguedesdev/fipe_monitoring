@@ -1,8 +1,7 @@
-import axios from "axios";
+import { getTabelaReferencia, getModelos } from "../../../lib/fipe";
 
 // Função para extrair o nome base do modelo (ex: "Ranger" de "Ranger Limited 3.2 4x4 CD Diesel Aut.")
 function extrairNomeBase(nomeCompleto) {
-  // Remove números e caracteres especiais para encontrar o nome principal
   const palavras = nomeCompleto.split(" ");
 
   // Lista de palavras que indicam o início da versão
@@ -88,12 +87,17 @@ function extrairNomeBase(nomeCompleto) {
     "EcoBoost",
     "TiVCT",
     "GTDI",
+    "LTZ",
+    "LT",
+    "LS",
+    "Premier",
+    "High",
+    "Country",
+    "Midnight",
   ];
 
-  // Encontra o primeiro ponto onde começa a versão
   let nomeBase = [];
   for (const palavra of palavras) {
-    // Se a palavra é uma versão conhecida ou começa com número, para aqui
     if (
       palavrasVersao.some((v) =>
         palavra.toUpperCase().startsWith(v.toUpperCase())
@@ -105,7 +109,6 @@ function extrairNomeBase(nomeCompleto) {
     nomeBase.push(palavra);
   }
 
-  // Se não conseguiu extrair nada, usa a primeira palavra
   if (nomeBase.length === 0) {
     nomeBase = [palavras[0]];
   }
@@ -125,25 +128,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Buscar todos os modelos da marca
-    const response = await axios.get(
-      `https://parallelum.com.br/fipe/api/v1/carros/marcas/${marca}/modelos`,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-        timeout: 10000,
-      }
-    );
+    // Obter tabela de referência mais recente
+    const tabela = await getTabelaReferencia();
 
-    const todosModelos = response.data.modelos;
+    // Buscar modelos da API oficial FIPE
+    const todosModelos = await getModelos(tabela.Codigo, marca, 1);
 
     // Agrupar modelos por nome base
     const modelosAgrupados = {};
 
     for (const modelo of todosModelos) {
-      const nomeBase = extrairNomeBase(modelo.nome);
+      const nomeBase = extrairNomeBase(modelo.Label);
 
       if (!modelosAgrupados[nomeBase]) {
         modelosAgrupados[nomeBase] = {
@@ -153,10 +148,9 @@ export default async function handler(req, res) {
       }
 
       modelosAgrupados[nomeBase].versoes.push({
-        codigo: modelo.codigo,
-        nome: modelo.nome,
-        // Extrai a versão removendo o nome base
-        versao: modelo.nome.replace(nomeBase, "").trim() || modelo.nome,
+        codigo: modelo.Value,
+        nome: modelo.Label,
+        versao: modelo.Label.replace(nomeBase, "").trim() || modelo.Label,
       });
     }
 
@@ -177,6 +171,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Erro ao buscar modelos agrupados:", error);
-    res.status(500).json({ error: "Erro ao consultar modelos" });
+    res.status(500).json({ error: "Erro ao consultar modelos da FIPE" });
   }
 }

@@ -851,18 +851,32 @@
     border-radius: 12px;
   }
 
+  /* Container de ações mobile */
+  .acoesContainer {
+    padding: 0 16px;
+    margin-bottom: 16px;
+    flex-direction: column;
+  }
+
   /* Botão comparar mobile */
   .comparacaoToggle {
     padding: 0 16px;
     margin-bottom: 16px;
   }
 
-  .btnComparar {
+  .btnComparar,
+  .btnAtualizar {
     width: 100%;
     justify-content: center;
     padding: 14px 20px;
     border-radius: 12px;
     font-size: 15px;
+  }
+
+  .statusBar {
+    margin: 0 16px 16px;
+    padding: 12px 16px;
+    font-size: 13px;
   }
 }
 
@@ -916,6 +930,16 @@
    COMPARAÇÃO DE VEÍCULOS
    ============================================ */
 
+/* Container de ações (comparar + atualizar) */
+.acoesContainer {
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  padding: 0 20px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 /* Botão para ativar modo comparação */
 .comparacaoToggle {
   max-width: 1200px;
@@ -941,6 +965,77 @@
 .btnComparar:hover {
   background: rgba(52, 152, 219, 0.3);
   border-color: #3498db;
+}
+
+/* Botão de atualizar */
+.btnAtualizar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(46, 204, 113, 0.2);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  color: #2ecc71;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnAtualizar:hover:not(:disabled) {
+  background: rgba(46, 204, 113, 0.3);
+  border-color: #2ecc71;
+}
+
+.btnAtualizar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnAtualizando {
+  background: rgba(241, 196, 15, 0.2);
+  border-color: rgba(241, 196, 15, 0.4);
+  color: #f1c40f;
+}
+
+.spinnerSmall {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Status bar */
+.statusBar {
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.statusBar.info {
+  background: rgba(52, 152, 219, 0.2);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  color: #3498db;
+}
+
+.statusBar.sucesso {
+  background: rgba(46, 204, 113, 0.2);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  color: #2ecc71;
+}
+
+.statusBar.erro {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  color: #e74c3c;
 }
 
 /* Card selecionado */

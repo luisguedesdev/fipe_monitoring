@@ -1,4 +1,4 @@
-import axios from "axios";
+import { getTabelaReferencia, getAnos } from "../../../../lib/fipe";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -14,29 +14,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Usando API Parallelum (mais confiável)
-    const response = await axios.get(
-      `https://parallelum.com.br/fipe/api/v1/carros/marcas/${marca}/modelos/${modelo}/anos`,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-        timeout: 10000,
-      }
-    );
+    // Obter tabela de referência mais recente
+    const tabela = await getTabelaReferencia();
 
-    // Converter formato Parallelum para formato FIPE
-    // Parallelum: [{ codigo: "2014-5", nome: "2014 Flex" }]
-    // FIPE: [{ Label: "2014 Flex", Value: "2014-5" }]
-    const anos = response.data.map((ano) => ({
-      Label: ano.nome,
-      Value: ano.codigo,
+    // Buscar anos da API oficial FIPE
+    const anos = await getAnos(tabela.Codigo, marca, modelo, 1); // 1 = carros
+
+    // Converter formato FIPE para o formato esperado pelo frontend
+    // FIPE: { Label: "2014 Diesel", Value: "2014-3" }
+    const anosFormatados = anos.map((ano) => ({
+      Label: ano.Label,
+      Value: ano.Value,
     }));
 
-    res.status(200).json(anos);
+    res.status(200).json(anosFormatados);
   } catch (error) {
     console.error("Erro ao buscar anos:", error);
-    res.status(500).json({ error: "Erro ao consultar anos" });
+    res.status(500).json({ error: "Erro ao consultar anos da FIPE" });
   }
 }

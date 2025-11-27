@@ -1,4 +1,4 @@
-import axios from "axios";
+import { getTabelaReferencia, getModelos } from "../../../lib/fipe";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -12,29 +12,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Usando API Parallelum (mais confiável)
-    const response = await axios.get(
-      `https://parallelum.com.br/fipe/api/v1/carros/marcas/${marca}/modelos`,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-        timeout: 10000,
-      }
-    );
+    // Obter tabela de referência mais recente
+    const tabela = await getTabelaReferencia();
 
-    // Converter formato Parallelum para formato FIPE
-    // Parallelum: { modelos: [{ codigo: 1, nome: "Model" }] }
-    // FIPE: { Modelos: [{ Label: "Model", Value: 1 }] }
-    const modelos = response.data.modelos.map((modelo) => ({
-      Label: modelo.nome,
-      Value: modelo.codigo,
+    // Buscar modelos da API oficial FIPE
+    const modelos = await getModelos(tabela.Codigo, marca, 1); // 1 = carros
+
+    // Converter formato FIPE para o formato esperado pelo frontend
+    const modelosFormatados = modelos.map((modelo) => ({
+      Label: modelo.Label,
+      Value: modelo.Value,
     }));
 
-    res.status(200).json({ Modelos: modelos, Anos: response.data.anos || [] });
+    res.status(200).json({ Modelos: modelosFormatados, Anos: [] });
   } catch (error) {
     console.error("Erro ao buscar modelos:", error);
-    res.status(500).json({ error: "Erro ao consultar modelos" });
+    res.status(500).json({ error: "Erro ao consultar modelos da FIPE" });
   }
 }

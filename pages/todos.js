@@ -27,6 +27,8 @@ export default function TodosVeiculos() {
   const [lastSync, setLastSync] = useState(null);
   const [selecionados, setSelecionados] = useState([]);
   const [modoSelecao, setModoSelecao] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
+  const [atualizacaoStatus, setAtualizacaoStatus] = useState(null);
 
   useEffect(() => {
     // Verificar status de conexão
@@ -92,6 +94,56 @@ export default function TodosVeiculos() {
       }
     } catch (error) {
       console.error("Erro ao carregar dados offline:", error);
+    }
+  };
+
+  const atualizarTodos = async () => {
+    if (atualizando) return;
+
+    setAtualizando(true);
+    setAtualizacaoStatus({
+      tipo: "info",
+      mensagem: "Verificando meses faltantes...",
+    });
+
+    try {
+      const response = await fetch("/api/atualizar-todos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (data.totalAtualizados > 0) {
+          setAtualizacaoStatus({
+            tipo: "sucesso",
+            mensagem: `✅ ${data.totalAtualizados} registro(s) adicionado(s)!`,
+          });
+          // Recarregar lista de veículos
+          await carregarVeiculos();
+        } else {
+          setAtualizacaoStatus({
+            tipo: "info",
+            mensagem: "✓ Todos os veículos já estão atualizados!",
+          });
+        }
+      } else {
+        setAtualizacaoStatus({
+          tipo: "erro",
+          mensagem: `Erro: ${data.error}`,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar:", error);
+      setAtualizacaoStatus({
+        tipo: "erro",
+        mensagem: "Erro ao conectar com o servidor",
+      });
+    } finally {
+      setAtualizando(false);
+      // Limpar status após 5 segundos
+      setTimeout(() => setAtualizacaoStatus(null), 5000);
     }
   };
 
@@ -358,15 +410,42 @@ export default function TodosVeiculos() {
           )}
         </div>
 
-        {/* Botão de modo comparação */}
-        {veiculos.length >= 2 && !modoSelecao && (
-          <div className={styles.comparacaoToggle}>
+        {/* Botões de ação */}
+        {veiculos.length > 0 && !modoSelecao && (
+          <div className={styles.acoesContainer}>
+            {veiculos.length >= 2 && (
+              <button
+                className={styles.btnComparar}
+                onClick={() => setModoSelecao(true)}
+              >
+                📊 Comparar veículos
+              </button>
+            )}
             <button
-              className={styles.btnComparar}
-              onClick={() => setModoSelecao(true)}
+              className={`${styles.btnAtualizar} ${
+                atualizando ? styles.btnAtualizando : ""
+              }`}
+              onClick={atualizarTodos}
+              disabled={atualizando || !isOnline}
             >
-              📊 Comparar veículos
+              {atualizando ? (
+                <>
+                  <span className={styles.spinnerSmall}></span>
+                  Atualizando...
+                </>
+              ) : (
+                "🔄 Atualizar meses faltantes"
+              )}
             </button>
+          </div>
+        )}
+
+        {/* Status da atualização */}
+        {atualizacaoStatus && (
+          <div
+            className={`${styles.statusBar} ${styles[atualizacaoStatus.tipo]}`}
+          >
+            {atualizacaoStatus.mensagem}
           </div>
         )}
 
