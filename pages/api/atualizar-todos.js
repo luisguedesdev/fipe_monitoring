@@ -135,8 +135,20 @@ export default async function handler(req, res) {
 
       console.log(`  🔍 ${mesesFaltantes.length} meses faltantes para buscar`);
 
+      // Contador de erros consecutivos para este veículo
+      let errosConsecutivos = 0;
+      const MAX_ERROS_CONSECUTIVOS = 2;
+
       // Buscar cada mês faltante
       for (const tabela of mesesFaltantes) {
+        // Se teve muitos erros consecutivos, veículo provavelmente não existia
+        if (errosConsecutivos >= MAX_ERROS_CONSECUTIVOS) {
+          console.log(
+            `    ⏹️ Parando: veículo não existia antes deste período`
+          );
+          break;
+        }
+
         console.log(`    📅 Buscando ${tabela.Mes}...`);
 
         try {
@@ -154,10 +166,14 @@ export default async function handler(req, res) {
               `    ⚠️ ${tabela.Mes}: ${consultaFIPE.error || "Falha"}`
             );
             totalErros++;
+            errosConsecutivos++;
             // Continuar para próximo mês
             await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
             continue;
           }
+
+          // Resetar contador de erros consecutivos
+          errosConsecutivos = 0;
 
           // Calcular data de consulta
           const dataConsulta = parseMesFipe(tabela.Mes) || new Date();

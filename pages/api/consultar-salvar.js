@@ -51,11 +51,23 @@ export default async function handler(req, res) {
 
     let registrosSalvos = 0;
     let erros = 0;
+    let errosConsecutivos = 0;
+    const MAX_ERROS_CONSECUTIVOS = 2; // Para depois de 2 erros seguidos (veículo não existia)
     const resultados = [];
 
     // Processar cada mês
     for (let i = 0; i < mesesParaBuscar; i++) {
       const tabela = tabelas[i];
+
+      // Se teve muitos erros consecutivos, provavelmente o veículo não existia antes
+      if (errosConsecutivos >= MAX_ERROS_CONSECUTIVOS) {
+        console.log(
+          `\n⏹️ Parando busca: veículo provavelmente não existia antes de ${
+            tabelas[i - 1]?.Mes || "N/A"
+          }`
+        );
+        break;
+      }
 
       try {
         console.log(
@@ -74,6 +86,9 @@ export default async function handler(req, res) {
         if (!consultaFIPE.success) {
           throw new Error(`Falha na consulta: ${consultaFIPE.error}`);
         }
+
+        // Resetar contador de erros consecutivos
+        errosConsecutivos = 0;
 
         // Calcular data de consulta baseado no mês da tabela
         const dataConsulta = calcularDataDaTabela(tabela.Mes);
@@ -126,22 +141,41 @@ export default async function handler(req, res) {
         }
       } catch (error) {
         erros++;
+        errosConsecutivos++;
         console.error(`❌ Erro ao processar ${tabela.Mes}:`, error.message);
+
+        // Delay mesmo em caso de erro para não sobrecarregar API
+        if (i < mesesParaBuscar - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
       }
     }
 
     // Resumo
     const sucesso = registrosSalvos > 0;
 
+    // Mensagem personalizada baseada na situação
+    let message;
+    if (sucesso) {
+      if (registrosSalvos < meses) {
+        message = `✅ ${registrosSalvos} meses de histórico obtidos! (veículo existe na FIPE desde ${
+          resultados[resultados.length - 1]?.mes || "N/A"
+        })`;
+      } else {
+        message = `✅ ${registrosSalvos} meses de histórico FIPE oficial obtidos!`;
+      }
+    } else {
+      message = `⚠️ Não foi possível obter dados da FIPE para este veículo.`;
+    }
+
     const status = {
       success: sucesso,
       registrosSalvos,
       erros,
       total: mesesParaBuscar,
+      mesesDisponiveis: registrosSalvos,
       resultados,
-      message: sucesso
-        ? `✅ ${registrosSalvos} meses de histórico FIPE oficial obtidos!`
-        : `⚠️ Não foi possível obter dados da FIPE.`,
+      message,
     };
 
     console.log("\n📊 Resumo:");
