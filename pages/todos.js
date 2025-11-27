@@ -221,31 +221,17 @@ export default function TodosVeiculos() {
       e.stopPropagation();
     }
 
-    console.log("toggleSelecao chamado com veiculo:", veiculo);
-    console.log("Campos:", {
-      codigoMarca: veiculo.codigoMarca,
-      codigoModelo: veiculo.codigoModelo,
-      anoModelo: veiculo.anoModelo,
-    });
-
     const chave = `${veiculo.codigoMarca}-${veiculo.codigoModelo}-${veiculo.anoModelo}`;
-    console.log("Chave gerada:", chave);
 
     setSelecionados((prev) => {
-      console.log("Estado anterior de selecionados:", prev);
       const jaExiste = prev.find((v) => v.chave === chave);
       if (jaExiste) {
-        const newState = prev.filter((v) => v.chave !== chave);
-        console.log("Removendo - novo estado:", newState);
-        return newState;
+        return prev.filter((v) => v.chave !== chave);
       }
       if (prev.length >= MAX_COMPARACAO) {
-        console.log("Máximo atingido");
         return prev;
       }
-      const newState = [...prev, { ...veiculo, chave }];
-      console.log("Adicionando - novo estado:", newState);
-      return newState;
+      return [...prev, { ...veiculo, chave }];
     });
   };
 
@@ -255,7 +241,6 @@ export default function TodosVeiculos() {
   };
 
   const irParaComparacao = () => {
-    console.log("Selecionados:", selecionados);
     if (selecionados.length < 2) {
       alert("Selecione pelo menos 2 veículos para comparar");
       return;
@@ -263,7 +248,6 @@ export default function TodosVeiculos() {
     const params = selecionados
       .map((v) => `v=${v.codigoMarca}-${v.codigoModelo}-${v.anoModelo}`)
       .join("&");
-    console.log("URL params:", params);
     router.push(`/comparar?${params}`);
   };
 
@@ -306,10 +290,38 @@ export default function TodosVeiculos() {
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Carregando veículos...</p>
-      </div>
+      <>
+        <Header />
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingContent}>
+            <div className={styles.loadingIcon}>🚗</div>
+            <h2 className={styles.loadingTitle}>Carregando veículos</h2>
+            <p className={styles.loadingText}>Buscando dados do servidor...</p>
+            <div className={styles.progressBar}>
+              <div className={styles.progressFill}></div>
+            </div>
+
+            {/* Skeleton Cards */}
+            <div className={styles.skeletonGrid}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={styles.skeletonCard}>
+                  <div className={styles.skeletonHeader}>
+                    <div className={styles.skeletonBadge}></div>
+                    <div className={styles.skeletonBadgeSmall}></div>
+                  </div>
+                  <div className={styles.skeletonTitle}></div>
+                  <div className={styles.skeletonSubtitle}></div>
+                  <div className={styles.skeletonPrice}></div>
+                  <div className={styles.skeletonInfo}>
+                    <div className={styles.skeletonInfoItem}></div>
+                    <div className={styles.skeletonInfoItem}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -448,12 +460,6 @@ export default function TodosVeiculos() {
                         styles.cardSelecaoMode
                       } ${desabilitado ? styles.cardDesabilitado : ""}`}
                       onClick={(e) => {
-                        console.log(
-                          "Card clicado!",
-                          veiculo.nomeModelo,
-                          "desabilitado:",
-                          desabilitado
-                        );
                         if (!desabilitado) {
                           toggleSelecao(veiculo, e);
                         }

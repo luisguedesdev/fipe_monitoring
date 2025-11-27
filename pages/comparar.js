@@ -46,12 +46,10 @@ export default function CompararVeiculos() {
     if (router.isReady) {
       // Pegar todos os parâmetros 'v' da URL
       const params = router.query.v;
-      console.log("Query params v:", params);
 
       if (params) {
         // Garantir que seja sempre um array
         const veiculosParams = Array.isArray(params) ? params : [params];
-        console.log("Veículos params:", veiculosParams);
 
         if (veiculosParams.length > 0) {
           carregarDados(veiculosParams);
@@ -78,15 +76,11 @@ export default function CompararVeiculos() {
         const ano = partes.slice(2).join("-");
 
         const url = `/api/historico-veiculo?marca=${marca}&modelo=${modelo}&ano=${ano}&meses=${periodoSelecionado}`;
-        console.log("Fetching URL:", url);
         const response = await fetch(url);
-        const data = await response.json();
-        console.log("Response for", param, ":", data);
-        return data;
+        return response.json();
       });
 
       const resultados = await Promise.all(promises);
-      console.log("Todos os resultados:", resultados);
 
       const veiculosData = [];
       const historicosData = [];
@@ -105,7 +99,6 @@ export default function CompararVeiculos() {
         }
       });
 
-      console.log("Veículos carregados:", veiculosData.length);
       setVeiculos(veiculosData);
       setHistoricos(historicosData);
     } catch (error) {
@@ -274,8 +267,36 @@ export default function CompararVeiculos() {
       <>
         <Header />
         <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
-          <p>Carregando comparação...</p>
+          <div className={styles.loadingContent}>
+            <div className={styles.loadingIcon}>📊</div>
+            <h2 className={styles.loadingTitle}>Preparando comparação</h2>
+            <p className={styles.loadingText}>
+              Buscando histórico de preços...
+            </p>
+            <div className={styles.progressBar}>
+              <div className={styles.progressFill}></div>
+            </div>
+
+            {/* Skeleton da comparação */}
+            <div className={styles.skeletonComparacao}>
+              <div className={styles.skeletonCards}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className={styles.skeletonVeiculoCard}>
+                    <div className={styles.skeletonCorIndicador}></div>
+                    <div className={styles.skeletonVeiculoInfo}>
+                      <div className={styles.skeletonMarca}></div>
+                      <div className={styles.skeletonModelo}></div>
+                      <div className={styles.skeletonAno}></div>
+                    </div>
+                    <div className={styles.skeletonPreco}></div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.skeletonGrafico}>
+                <div className={styles.skeletonGraficoInner}></div>
+              </div>
+            </div>
+          </div>
         </div>
       </>
     );

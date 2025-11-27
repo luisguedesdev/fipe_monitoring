@@ -81,8 +81,12 @@
 
 /* Responsive */
 @media (max-width: 640px) {
+  .header {
+    padding: 0 16px;
+  }
+
   .container {
-    height: 60px;
+    height: 56px;
   }
 
   .logoText {
@@ -93,15 +97,41 @@
     font-size: 1.5rem;
   }
 
+  /* Navegação fixa no bottom mobile */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 8px 16px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    justify-content: space-around;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    gap: 0;
+  }
+
   .navLink {
-    padding: 10px 14px;
+    flex-direction: column;
+    padding: 8px 16px;
+    gap: 4px;
+    border-radius: 12px;
+    min-width: 80px;
   }
 
   .navText {
-    display: none;
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
   }
 
   .navIcon {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
+  }
+
+  .navLink.active {
+    background: rgba(230, 57, 70, 0.2);
+    color: #e63946;
   }
 }

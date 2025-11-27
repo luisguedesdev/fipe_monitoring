@@ -194,8 +194,14 @@ export default function ResultadoFipe() {
       <>
         <Header />
         <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
-          <p>Carregando dados do veículo...</p>
+          <div className={styles.loadingContent}>
+            <div className={styles.loadingIcon}>📈</div>
+            <h2 className={styles.loadingTitle}>Carregando histórico</h2>
+            <p className={styles.loadingText}>Buscando dados do veículo...</p>
+            <div className={styles.progressBar}>
+              <div className={styles.progressFill}></div>
+            </div>
+          </div>
         </div>
       </>
     );

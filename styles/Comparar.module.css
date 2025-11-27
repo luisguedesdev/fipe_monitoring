@@ -12,9 +12,220 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #fff;
+  padding: 40px 20px;
+  padding-top: 100px;
+}
+
+.loadingContent {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.loadingIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.loadingTitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+.loadingText {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 24px;
+}
+
+/* Barra de progresso */
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.progressFill {
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(90deg, #3498db, #5dade2, #3498db);
+  background-size: 200% 100%;
+  border-radius: 3px;
+  animation: progress 1.5s ease-in-out infinite,
+    shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% {
+    width: 10%;
+    margin-left: 0;
+  }
+  50% {
+    width: 60%;
+    margin-left: 20%;
+  }
+  100% {
+    width: 10%;
+    margin-left: 90%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton Comparação */
+.skeletonComparacao {
+  width: 100%;
+}
+
+.skeletonCards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.skeletonVeiculoCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skeletonCorIndicador {
+  width: 6px;
+  height: 50px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+}
+
+.skeletonVeiculoInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeletonMarca {
+  width: 60px;
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonModelo {
+  width: 140px;
+  height: 18px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonAno {
+  width: 80px;
+  height: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonPreco {
+  width: 80px;
+  height: 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+.skeletonGrafico {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skeletonGraficoInner {
+  height: 200px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 25%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .spinner {
@@ -443,32 +654,148 @@
 /* Responsivo */
 @media (max-width: 768px) {
   .container {
-    padding-bottom: 100px;
+    padding-bottom: 120px;
   }
 
   .pageHeader {
-    padding: 24px 16px;
+    padding: 20px 16px;
+    margin-bottom: 20px;
   }
 
   .pageHeader h1 {
-    font-size: 22px;
+    font-size: 20px;
+  }
+
+  .pageHeader p {
+    font-size: 14px;
+  }
+
+  .periodoContainer {
+    padding: 0 16px;
+    margin-bottom: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .periodoContainer label {
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .periodoButtons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .periodoBtn {
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 12px;
+    border-radius: 10px;
   }
 
   .veiculosComparacao {
     grid-template-columns: 1fr;
+    padding: 0 16px;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .veiculoCard {
+    padding: 16px;
+    border-radius: 14px;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .corIndicador {
+    position: static;
+    width: 6px;
+    height: 50px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .veiculoInfo {
+    flex: 1;
+    padding-top: 0;
+    gap: 2px;
+  }
+
+  .marca {
+    font-size: 10px;
+  }
+
+  .modelo {
+    font-size: 15px;
+    line-height: 1.3;
+  }
+
+  .ano {
+    font-size: 12px;
+  }
+
+  .veiculoPreco {
+    text-align: right;
+  }
+
+  .precoAtual {
+    font-size: 16px;
+  }
+
+  .variacao {
+    font-size: 12px;
+  }
+
+  /* Gráfico */
+  .graficoContainer {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .graficoContainer h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
   }
 
   .grafico {
-    height: 300px;
-    padding: 15px;
+    height: 280px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  /* Tabela */
+  .tabelaContainer {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .tabelaContainer h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .tabelaWrapper {
+    border-radius: 14px;
+    overflow: hidden;
   }
 
   .tabela th,
   .tabela td {
-    padding: 10px 12px;
-    font-size: 12px;
+    padding: 12px 10px;
+    font-size: 11px;
   }
 
+  .tabela th:first-child,
+  .tabela td:first-child {
+    padding-left: 12px;
+  }
+
+  /* Ocultar colunas menos importantes */
   .tabela th:nth-child(4),
   .tabela td:nth-child(4),
   .tabela th:nth-child(5),
@@ -476,27 +803,106 @@
     display: none;
   }
 
+  .veiculoTabela {
+    gap: 8px;
+  }
+
+  .corBadge {
+    width: 10px;
+    height: 10px;
+  }
+
+  .veiculoTabela strong {
+    font-size: 12px;
+  }
+
+  .veiculoTabela span {
+    font-size: 10px;
+  }
+
+  /* Diferença */
+  .diferencaContainer {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .diferencaContainer h2 {
+    font-size: 18px;
+  }
+
   .diferencaGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .diferencaCard {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .diferencaVeiculos {
+    font-size: 13px;
+  }
+
+  .mais,
+  .menos {
+    font-size: 20px;
+  }
+
+  /* Navegação */
+  .navigation {
+    padding: 0 16px;
+    margin-top: 24px;
+  }
+
+  .btnSecondary {
+    display: block;
+    text-align: center;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  /* Mensagem sem dados */
+  .mensagemContainer {
+    padding: 40px 24px;
+    margin: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .mensagemContainer h2 {
+    font-size: 20px;
+  }
+
+  .btnPrimary {
+    display: block;
+    text-align: center;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 15px;
   }
 }
 
 @media (max-width: 480px) {
   .periodoButtons {
-    flex-wrap: wrap;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .periodoBtn {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 8px 10px;
+    font-size: 11px;
   }
 
   .precoAtual {
-    font-size: 18px;
+    font-size: 15px;
   }
 
   .mais,
   .menos {
     font-size: 18px;
+  }
+
+  .grafico {
+    height: 250px;
   }
 }

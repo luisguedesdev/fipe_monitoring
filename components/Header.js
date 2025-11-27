@@ -20,18 +20,20 @@ export default function Header() {
               router.pathname === "/" ? styles.active : ""
             }`}
           >
-            <span className={styles.navIcon}>🔍</span>
-            <span className={styles.navText}>Nova Consulta</span>
+            <span className={styles.navIcon}>➕</span>
+            <span className={styles.navText}>Adicionar</span>
           </Link>
 
           <Link
             href="/todos"
             className={`${styles.navLink} ${
-              router.pathname === "/todos" ? styles.active : ""
+              router.pathname === "/todos" || router.pathname === "/resultado"
+                ? styles.active
+                : ""
             }`}
           >
             <span className={styles.navIcon}>📋</span>
-            <span className={styles.navText}>Meus Veículos</span>
+            <span className={styles.navText}>Veículos</span>
           </Link>
         </nav>
       </div>
