@@ -1,0 +1,502 @@
+/* Container principal */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  padding-bottom: 40px;
+}
+
+/* Loading */
+.loadingContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: #e63946;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Page Header */
+.pageHeader {
+  background: linear-gradient(135deg, #e63946 0%, #d62839 100%);
+  padding: 30px 20px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.pageHeader h1 {
+  font-size: 28px;
+  margin: 0 0 8px 0;
+}
+
+.pageHeader p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+/* Seletor de período */
+.periodoContainer {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.periodoContainer label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.periodoButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.periodoBtn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.periodoBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.periodoAtivo {
+  background: #e63946;
+  border-color: #e63946;
+  color: #fff;
+}
+
+.periodoAtivo:hover {
+  background: #d62839;
+}
+
+/* Cards dos veículos em comparação */
+.veiculosComparacao {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.veiculoCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  border: 3px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.corIndicador {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.veiculoInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.marca {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.modelo {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+}
+
+.ano {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.veiculoPreco {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.precoAtual {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.variacao {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.variacaoUp {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+.variacaoDown {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+/* Gráfico */
+.graficoContainer {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+}
+
+.graficoContainer h2 {
+  font-size: 20px;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grafico {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  height: 400px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tabela comparativa */
+.tabelaContainer {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+}
+
+.tabelaContainer h2 {
+  font-size: 20px;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tabelaWrapper {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tabela th,
+.tabela td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tabela th {
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+}
+
+.tabela td {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tabela tr:last-child td {
+  border-bottom: none;
+}
+
+.veiculoTabela {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.corBadge {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.veiculoTabela div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.veiculoTabela strong {
+  font-weight: 600;
+  color: #fff;
+}
+
+.veiculoTabela span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.precoCell {
+  font-weight: 600;
+  color: #fff !important;
+}
+
+.variacaoBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Diferença de preços */
+.diferencaContainer {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+}
+
+.diferencaContainer h2 {
+  font-size: 20px;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.diferencaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.diferencaCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.diferencaVeiculos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vs {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.diferencaValor {
+  text-align: center;
+}
+
+.diferencaValor span {
+  display: block;
+}
+
+.mais {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e74c3c;
+}
+
+.menos {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2ecc71;
+}
+
+.diferencaPercent {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+/* Empty State */
+.emptyState {
+  max-width: 400px;
+  margin: 100px auto;
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.emptyIcon {
+  font-size: 64px;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.emptyState h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+}
+
+.emptyState p {
+  margin: 0 0 24px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.btnPrimary {
+  display: inline-block;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #e63946 0%, #d62839 100%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(230, 57, 70, 0.4);
+}
+
+/* Navegação */
+.navigation {
+  max-width: 1200px;
+  margin: 40px auto 0;
+  padding: 0 20px;
+}
+
+.btnSecondary {
+  display: inline-block;
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .container {
+    padding-bottom: 100px;
+  }
+
+  .pageHeader {
+    padding: 24px 16px;
+  }
+
+  .pageHeader h1 {
+    font-size: 22px;
+  }
+
+  .veiculosComparacao {
+    grid-template-columns: 1fr;
+  }
+
+  .grafico {
+    height: 300px;
+    padding: 15px;
+  }
+
+  .tabela th,
+  .tabela td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .tabela th:nth-child(4),
+  .tabela td:nth-child(4),
+  .tabela th:nth-child(5),
+  .tabela td:nth-child(5) {
+    display: none;
+  }
+
+  .diferencaGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .periodoButtons {
+    flex-wrap: wrap;
+  }
+
+  .periodoBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .precoAtual {
+    font-size: 18px;
+  }
+
+  .mais,
+  .menos {
+    font-size: 18px;
+  }
+}

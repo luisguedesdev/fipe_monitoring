@@ -485,11 +485,11 @@
   .container {
     padding-bottom: 80px; /* Espaço para o OfflineIndicator */
   }
-  
+
   .pageHeader {
     padding: 24px 16px;
   }
-  
+
   .pageHeader h1 {
     font-size: 22px;
   }
@@ -499,25 +499,25 @@
     padding: 0 16px;
     gap: 16px;
   }
-  
+
   .filtroGroup {
     min-width: 100%;
   }
-  
+
   .resumoCards {
     padding: 0 16px;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
   }
-  
+
   .resumoCard {
     padding: 14px 10px;
   }
-  
+
   .resumoValor {
     font-size: 22px;
   }
-  
+
   .resumoLabel {
     font-size: 10px;
   }
@@ -526,7 +526,7 @@
     grid-template-columns: 1fr;
     padding: 0 16px;
   }
-  
+
   .veiculoCard {
     padding: 16px;
   }
@@ -534,7 +534,7 @@
   .btnDeletar {
     opacity: 1;
   }
-  
+
   .modalContent {
     margin: 16px;
     max-height: calc(100vh - 32px);
@@ -551,20 +551,311 @@
   .pageHeader h1 {
     font-size: 20px;
   }
-  
+
   .resumoCards {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .resumoValor {
     font-size: 18px;
   }
-  
+
   .veiculoModelo {
     font-size: 16px;
   }
-  
+
   .precoValor {
     font-size: 18px;
   }
+}
+
+/* ============================================
+   COMPARAÇÃO DE VEÍCULOS
+   ============================================ */
+
+/* Botão para ativar modo comparação */
+.comparacaoToggle {
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  padding: 0 20px;
+}
+
+.btnComparar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(52, 152, 219, 0.2);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  color: #3498db;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnComparar:hover {
+  background: rgba(52, 152, 219, 0.3);
+  border-color: #3498db;
+}
+
+/* Card selecionado */
+.cardSelecionado {
+  position: relative;
+}
+
+.cardSelecionado .veiculoCard {
+  border-color: #3498db !important;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+}
+
+/* Botão de seleção no card */
+.btnSelecionar {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(26, 26, 46, 0.9);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  transition: all 0.2s;
+}
+
+.btnSelecionar:hover:not(:disabled) {
+  border-color: #3498db;
+  color: #3498db;
+  transform: scale(1.1);
+}
+
+.btnSelecionar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btnSelecionar.selecionado {
+  background: #3498db;
+  border-color: #3498db;
+  color: #fff;
+}
+
+/* Barra de ações flutuante */
+.barraComparacao {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(26, 26, 46, 0.98) 0%,
+    rgba(22, 33, 62, 0.98) 100%
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 20px;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.barraInfo {
+  max-width: 1200px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.barraContador {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.barraSelecionados {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.chipVeiculo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(52, 152, 219, 0.2);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #3498db;
+}
+
+.chipVeiculo button {
+  background: none;
+  border: none;
+  color: #3498db;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.chipVeiculo button:hover {
+  opacity: 1;
+}
+
+.barraAcoes {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btnCancelarComp {
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnCancelarComp:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btnCompararAtivo {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnCompararAtivo:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+}
+
+.btnCompararAtivo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsivo - barra de comparação */
+@media (max-width: 768px) {
+  .barraComparacao {
+    padding: 12px 16px;
+  }
+
+  .barraInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .barraSelecionados {
+    width: 100%;
+  }
+
+  .barraAcoes {
+    flex-direction: row;
+  }
+
+  .btnCancelarComp,
+  .btnCompararAtivo {
+    flex: 1;
+    padding: 12px 16px;
+  }
+
+  .btnSelecionar {
+    opacity: 1;
+  }
+}
+
+/* Estilos para modo de seleção */
+.cardSelecaoMode {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.cardSelecaoMode:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.cardSelecaoMode:active {
+  transform: translateY(-2px);
+}
+
+.cardDesabilitado {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cardDesabilitado:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.checkboxWrapper {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+.checkbox {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  background: white;
+  transition: all 0.2s;
+}
+
+.checkbox.checked {
+  background: #e63946;
+  border-color: #e63946;
+  color: white;
+}
+
+.cardSelecionado .veiculoCard,
+.cardSelecionado .cardSelecaoMode {
+  border: 2px solid #e63946;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
 }

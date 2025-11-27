@@ -11,12 +11,15 @@ export default function App({ Component, pageProps }) {
           .register("/sw.js")
           .then((registration) => {
             console.log("[App] Service Worker registrado:", registration.scope);
-            
+
             // Verificar atualizações
             registration.addEventListener("updatefound", () => {
               const newWorker = registration.installing;
               newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                if (
+                  newWorker.state === "installed" &&
+                  navigator.serviceWorker.controller
+                ) {
                   // Novo conteúdo disponível
                   console.log("[App] Nova versão disponível");
                 }
@@ -34,20 +37,26 @@ export default function App({ Component, pageProps }) {
     <>
       <Head>
         {/* PWA Meta Tags */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
         <meta name="theme-color" content="#e63946" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
         <meta name="apple-mobile-web-app-title" content="FIPE Monitor" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=no" />
-        
+
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
-        
+
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
-        
+
         {/* Favicon */}
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
       </Head>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import Header from "../components/Header";
 import OfflineIndicator from "../components/OfflineIndicator";
 import {
@@ -11,7 +12,10 @@ import {
 } from "../lib/offlineStorage";
 import styles from "../styles/Todos.module.css";
 
+const MAX_COMPARACAO = 3;
+
 export default function TodosVeiculos() {
+  const router = useRouter();
   const [veiculos, setVeiculos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroMarca, setFiltroMarca] = useState("");
@@ -21,6 +25,8 @@ export default function TodosVeiculos() {
   const [isOnline, setIsOnline] = useState(true);
   const [isOfflineData, setIsOfflineData] = useState(false);
   const [lastSync, setLastSync] = useState(null);
+  const [selecionados, setSelecionados] = useState([]);
+  const [modoSelecao, setModoSelecao] = useState(false);
 
   useEffect(() => {
     // Verificar status de conexão
@@ -182,7 +188,9 @@ export default function TodosVeiculos() {
           veiculo.anoModelo
         );
         setConfirmDelete(null);
-        alert("Veículo removido localmente. Será sincronizado quando voltar online.");
+        alert(
+          "Veículo removido localmente. Será sincronizado quando voltar online."
+        );
       }
     } catch (error) {
       console.error("Erro ao deletar:", error);
@@ -204,6 +212,64 @@ export default function TodosVeiculos() {
       e.stopPropagation();
     }
     setConfirmDelete(null);
+  };
+
+  // Funções de seleção para comparação
+  const toggleSelecao = (veiculo, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    console.log("toggleSelecao chamado com veiculo:", veiculo);
+    console.log("Campos:", {
+      codigoMarca: veiculo.codigoMarca,
+      codigoModelo: veiculo.codigoModelo,
+      anoModelo: veiculo.anoModelo,
+    });
+
+    const chave = `${veiculo.codigoMarca}-${veiculo.codigoModelo}-${veiculo.anoModelo}`;
+    console.log("Chave gerada:", chave);
+
+    setSelecionados((prev) => {
+      console.log("Estado anterior de selecionados:", prev);
+      const jaExiste = prev.find((v) => v.chave === chave);
+      if (jaExiste) {
+        const newState = prev.filter((v) => v.chave !== chave);
+        console.log("Removendo - novo estado:", newState);
+        return newState;
+      }
+      if (prev.length >= MAX_COMPARACAO) {
+        console.log("Máximo atingido");
+        return prev;
+      }
+      const newState = [...prev, { ...veiculo, chave }];
+      console.log("Adicionando - novo estado:", newState);
+      return newState;
+    });
+  };
+
+  const limparSelecao = () => {
+    setSelecionados([]);
+    setModoSelecao(false);
+  };
+
+  const irParaComparacao = () => {
+    console.log("Selecionados:", selecionados);
+    if (selecionados.length < 2) {
+      alert("Selecione pelo menos 2 veículos para comparar");
+      return;
+    }
+    const params = selecionados
+      .map((v) => `v=${v.codigoMarca}-${v.codigoModelo}-${v.anoModelo}`)
+      .join("&");
+    console.log("URL params:", params);
+    router.push(`/comparar?${params}`);
+  };
+
+  const isSelecionado = (veiculo) => {
+    const chave = `${veiculo.codigoMarca}-${veiculo.codigoModelo}-${veiculo.anoModelo}`;
+    return selecionados.some((v) => v.chave === chave);
   };
 
   // Filtrar e ordenar veículos
@@ -250,8 +316,8 @@ export default function TodosVeiculos() {
   return (
     <>
       <Header />
-      <OfflineIndicator 
-        isOnline={isOnline} 
+      <OfflineIndicator
+        isOnline={isOnline}
         isOfflineData={isOfflineData}
         lastSync={lastSync}
         onSync={carregarVeiculos}
@@ -279,6 +345,18 @@ export default function TodosVeiculos() {
             </span>
           )}
         </div>
+
+        {/* Botão de modo comparação */}
+        {veiculos.length >= 2 && !modoSelecao && (
+          <div className={styles.comparacaoToggle}>
+            <button
+              className={styles.btnComparar}
+              onClick={() => setModoSelecao(true)}
+            >
+              📊 Comparar veículos
+            </button>
+          </div>
+        )}
 
         {/* Filtros */}
         <div className={styles.filtrosContainer}>
@@ -352,65 +430,197 @@ export default function TodosVeiculos() {
           <div className={styles.veiculosGrid}>
             {veiculosFiltrados.map((veiculo) => {
               const chave = `${veiculo.codigoMarca}-${veiculo.codigoModelo}-${veiculo.anoModelo}`;
+              const selecionado = isSelecionado(veiculo);
+              const desabilitado =
+                !selecionado && selecionados.length >= MAX_COMPARACAO;
+
               return (
-                <div key={chave} className={styles.veiculoCardWrapper}>
-                  <Link
-                    href={`/resultado?marca=${veiculo.codigoMarca}&modelo=${veiculo.codigoModelo}&ano=${veiculo.anoModelo}`}
-                    className={styles.veiculoCard}
-                  >
-                    <div className={styles.veiculoHeader}>
-                      <span className={styles.veiculoMarca}>
-                        {veiculo.nomeMarca}
+                <div
+                  key={chave}
+                  className={`${styles.veiculoCardWrapper} ${
+                    selecionado ? styles.cardSelecionado : ""
+                  }`}
+                >
+                  {modoSelecao ? (
+                    // Em modo seleção, usar div clicável
+                    <div
+                      className={`${styles.veiculoCard} ${
+                        styles.cardSelecaoMode
+                      } ${desabilitado ? styles.cardDesabilitado : ""}`}
+                      onClick={(e) => {
+                        console.log(
+                          "Card clicado!",
+                          veiculo.nomeModelo,
+                          "desabilitado:",
+                          desabilitado
+                        );
+                        if (!desabilitado) {
+                          toggleSelecao(veiculo, e);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className={styles.checkboxWrapper}>
+                        <div
+                          className={`${styles.checkbox} ${
+                            selecionado ? styles.checked : ""
+                          }`}
+                        >
+                          {selecionado ? "✓" : ""}
+                        </div>
+                      </div>
+                      <div className={styles.veiculoHeader}>
+                        <span className={styles.veiculoMarca}>
+                          {veiculo.nomeMarca}
+                        </span>
+                        <span
+                          className={`${styles.veiculoVariacao} ${
+                            veiculo.variacao > 0
+                              ? styles.variacaoUp
+                              : veiculo.variacao < 0
+                              ? styles.variacaoDown
+                              : ""
+                          }`}
+                        >
+                          {formatarVariacao(veiculo.variacao)}
+                        </span>
+                      </div>
+
+                      <h3 className={styles.veiculoModelo}>
+                        {veiculo.nomeModelo}
+                      </h3>
+                      <span className={styles.veiculoAno}>
+                        {veiculo.nomeAno}
                       </span>
-                      <span
-                        className={`${styles.veiculoVariacao} ${
-                          veiculo.variacao > 0
-                            ? styles.variacaoUp
-                            : veiculo.variacao < 0
-                            ? styles.variacaoDown
-                            : ""
-                        }`}
+
+                      <div className={styles.veiculoPreco}>
+                        <span className={styles.precoLabel}>Último preço</span>
+                        <span className={styles.precoValor}>
+                          {formatarMoeda(veiculo.ultimoPrecoNum)}
+                        </span>
+                      </div>
+
+                      <div className={styles.veiculoInfo}>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoIcon}>📊</span>
+                          <span>{veiculo.totalRegistros} registros</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoIcon}>📅</span>
+                          <span>{formatarData(veiculo.ultimaConsulta)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Modo normal, usar Link
+                    <>
+                      <Link
+                        href={`/resultado?marca=${veiculo.codigoMarca}&modelo=${veiculo.codigoModelo}&ano=${veiculo.anoModelo}`}
+                        className={styles.veiculoCard}
                       >
-                        {formatarVariacao(veiculo.variacao)}
-                      </span>
-                    </div>
+                        <div className={styles.veiculoHeader}>
+                          <span className={styles.veiculoMarca}>
+                            {veiculo.nomeMarca}
+                          </span>
+                          <span
+                            className={`${styles.veiculoVariacao} ${
+                              veiculo.variacao > 0
+                                ? styles.variacaoUp
+                                : veiculo.variacao < 0
+                                ? styles.variacaoDown
+                                : ""
+                            }`}
+                          >
+                            {formatarVariacao(veiculo.variacao)}
+                          </span>
+                        </div>
 
-                    <h3 className={styles.veiculoModelo}>
-                      {veiculo.nomeModelo}
-                    </h3>
-                    <span className={styles.veiculoAno}>{veiculo.nomeAno}</span>
+                        <h3 className={styles.veiculoModelo}>
+                          {veiculo.nomeModelo}
+                        </h3>
+                        <span className={styles.veiculoAno}>
+                          {veiculo.nomeAno}
+                        </span>
 
-                    <div className={styles.veiculoPreco}>
-                      <span className={styles.precoLabel}>Último preço</span>
-                      <span className={styles.precoValor}>
-                        {formatarMoeda(veiculo.ultimoPrecoNum)}
-                      </span>
-                    </div>
+                        <div className={styles.veiculoPreco}>
+                          <span className={styles.precoLabel}>
+                            Último preço
+                          </span>
+                          <span className={styles.precoValor}>
+                            {formatarMoeda(veiculo.ultimoPrecoNum)}
+                          </span>
+                        </div>
 
-                    <div className={styles.veiculoInfo}>
-                      <div className={styles.infoItem}>
-                        <span className={styles.infoIcon}>📊</span>
-                        <span>{veiculo.totalRegistros} registros</span>
-                      </div>
-                      <div className={styles.infoItem}>
-                        <span className={styles.infoIcon}>📅</span>
-                        <span>{formatarData(veiculo.ultimaConsulta)}</span>
-                      </div>
-                    </div>
+                        <div className={styles.veiculoInfo}>
+                          <div className={styles.infoItem}>
+                            <span className={styles.infoIcon}>📊</span>
+                            <span>{veiculo.totalRegistros} registros</span>
+                          </div>
+                          <div className={styles.infoItem}>
+                            <span className={styles.infoIcon}>📅</span>
+                            <span>{formatarData(veiculo.ultimaConsulta)}</span>
+                          </div>
+                        </div>
 
-                    <div className={styles.verMais}>Ver histórico →</div>
-                  </Link>
+                        <div className={styles.verMais}>Ver histórico →</div>
+                      </Link>
 
-                  <button
-                    className={styles.btnDeletar}
-                    onClick={(e) => abrirConfirmacao(veiculo, e)}
-                    title="Deletar veículo"
-                  >
-                    🗑️
-                  </button>
+                      <button
+                        className={styles.btnDeletar}
+                        onClick={(e) => abrirConfirmacao(veiculo, e)}
+                        title="Deletar veículo"
+                      >
+                        🗑️
+                      </button>
+                    </>
+                  )}
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Barra de ações flutuante para comparação */}
+        {modoSelecao && (
+          <div className={styles.barraComparacao}>
+            <div className={styles.barraInfo}>
+              <span className={styles.barraContador}>
+                {selecionados.length} / {MAX_COMPARACAO} selecionados
+              </span>
+              <div className={styles.barraSelecionados}>
+                {selecionados.map((v, i) => (
+                  <span key={v.chave} className={styles.chipVeiculo}>
+                    {v.nomeModelo}
+                    <button
+                      onClick={() =>
+                        toggleSelecao(v, {
+                          preventDefault: () => {},
+                          stopPropagation: () => {},
+                        })
+                      }
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className={styles.barraAcoes}>
+              <button
+                className={styles.btnCancelarComp}
+                onClick={limparSelecao}
+              >
+                Cancelar
+              </button>
+              <button
+                className={styles.btnCompararAtivo}
+                onClick={irParaComparacao}
+                disabled={selecionados.length < 2}
+              >
+                Comparar ({selecionados.length})
+              </button>
+            </div>
           </div>
         )}
 

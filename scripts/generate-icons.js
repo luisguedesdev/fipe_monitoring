@@ -1,8 +1,8 @@
 // Script para gerar ícones do PWA
 // Execute: node scripts/generate-icons.js
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Tamanhos de ícones necessários
 const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -159,7 +159,7 @@ const htmlContent = `
 </html>
 `;
 
-const outputPath = path.join(__dirname, '..', 'public', 'icon-generator.html');
+const outputPath = path.join(__dirname, "..", "public", "icon-generator.html");
 fs.writeFileSync(outputPath, htmlContent);
-console.log('✅ Gerador de ícones criado em: public/icon-generator.html');
-console.log('   Abra no navegador e baixe os ícones.');
+console.log("✅ Gerador de ícones criado em: public/icon-generator.html");
+console.log("   Abra no navegador e baixe os ícones.");
