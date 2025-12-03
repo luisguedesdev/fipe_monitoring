@@ -13,7 +13,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { marcaId, modeloId, anoId, meses = 12 } = req.body;
+  const {
+    marcaId,
+    modeloId,
+    anoId,
+    meses = 12,
+    forcarAtualizacao = false,
+  } = req.body;
 
   if (!marcaId || !modeloId || !anoId) {
     return res.status(400).json({
@@ -28,25 +34,90 @@ export default async function handler(req, res) {
       `📊 Veículo: marca=${marcaId}, modelo=${modeloId}, ano=${anoId}`
     );
 
+    // Verificar se já existe histórico recente no banco
+    const historicoExistente = await db.query(
+      `SELECT COUNT(*) as total, 
+              MAX(data_consulta) as ultima_consulta,
+              MAX(codigo_tabela_referencia) as ultima_tabela
+       FROM historico_precos
+       WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3`,
+      [marcaId, modeloId, anoId]
+    );
+
+    const totalExistente = parseInt(historicoExistente.rows[0]?.total) || 0;
+    const ultimaConsulta = historicoExistente.rows[0]?.ultima_consulta;
+    const ultimaTabela = historicoExistente.rows[0]?.ultima_tabela;
+
+    // Obter tabela de referência atual
+    const tabelaAtual = await getTabelaReferencia();
+
+    // Se já tem histórico E a tabela é atual E não está forçando atualização
+    if (totalExistente > 0 && !forcarAtualizacao) {
+      // Verificar se já tem o mês atual
+      const temMesAtual = ultimaTabela === tabelaAtual.Codigo;
+
+      if (temMesAtual) {
+        console.log(
+          `✅ Veículo já possui histórico atualizado (${totalExistente} registros)`
+        );
+        console.log(
+          `📅 Última tabela: ${ultimaTabela}, Tabela atual: ${tabelaAtual.Codigo}`
+        );
+
+        // Buscar histórico existente para retornar
+        const historico = await db.query(
+          `SELECT codigo_tabela_referencia, preco, data_consulta, nome_marca, nome_modelo
+           FROM historico_precos
+           WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3
+           ORDER BY data_consulta DESC
+           LIMIT $4`,
+          [marcaId, modeloId, anoId, meses]
+        );
+
+        return res.json({
+          success: true,
+          registrosSalvos: 0,
+          registrosExistentes: totalExistente,
+          erros: 0,
+          total: totalExistente,
+          mesesDisponiveis: totalExistente,
+          resultados: historico.rows.map((r) => ({
+            preco: r.preco,
+            data: r.data_consulta,
+            fonte: "banco_dados",
+          })),
+          message: `✅ Veículo já possui ${totalExistente} meses de histórico! (atualizado)`,
+          jaExistia: true,
+        });
+      }
+
+      // Tem histórico mas não tem o mês atual - buscar apenas os meses faltantes
+      console.log(
+        `📊 Veículo tem ${totalExistente} registros, mas falta atualização do mês atual`
+      );
+    }
+
     // Obter tabelas de referência disponíveis
     const tabelas = await getTabelasReferencia();
     const mesesParaBuscar = Math.min(meses, tabelas.length);
 
     console.log(`📅 Buscando dados para os últimos ${mesesParaBuscar} meses`);
 
-    // Limpar registros antigos
-    console.log("\n🗑️ Removendo registros antigos...");
-    try {
-      const deleteResult = await db.query(
-        `DELETE FROM historico_precos 
-         WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3`,
-        [marcaId, modeloId, anoId]
-      );
-      console.log(
-        `✅ ${deleteResult.rowCount || 0} registros antigos removidos`
-      );
-    } catch (deleteError) {
-      console.error("⚠️ Erro ao limpar registros:", deleteError.message);
+    // Se forçando atualização ou não tem histórico, limpar registros antigos
+    if (forcarAtualizacao || totalExistente === 0) {
+      console.log("\n🗑️ Removendo registros antigos...");
+      try {
+        const deleteResult = await db.query(
+          `DELETE FROM historico_precos 
+           WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3`,
+          [marcaId, modeloId, anoId]
+        );
+        console.log(
+          `✅ ${deleteResult.rowCount || 0} registros antigos removidos`
+        );
+      } catch (deleteError) {
+        console.error("⚠️ Erro ao limpar registros:", deleteError.message);
+      }
     }
 
     let registrosSalvos = 0;
@@ -55,9 +126,33 @@ export default async function handler(req, res) {
     const MAX_ERROS_CONSECUTIVOS = 2; // Para depois de 2 erros seguidos (veículo não existia)
     const resultados = [];
 
+    // Se tem histórico existente e não está forçando, buscar apenas meses faltantes
+    const apenasAtualizar = totalExistente > 0 && !forcarAtualizacao;
+
+    // Buscar tabelas que já existem no banco
+    let tabelasExistentes = new Set();
+    if (apenasAtualizar) {
+      const existentes = await db.query(
+        `SELECT DISTINCT codigo_tabela_referencia 
+         FROM historico_precos 
+         WHERE codigo_marca = $1 AND codigo_modelo = $2 AND ano_modelo = $3`,
+        [marcaId, modeloId, anoId]
+      );
+      tabelasExistentes = new Set(
+        existentes.rows.map((r) => r.codigo_tabela_referencia)
+      );
+      console.log(`📊 Já existem ${tabelasExistentes.size} meses no banco`);
+    }
+
     // Processar cada mês
     for (let i = 0; i < mesesParaBuscar; i++) {
       const tabela = tabelas[i];
+
+      // Pular se já existe no banco (quando não está forçando atualização)
+      if (apenasAtualizar && tabelasExistentes.has(tabela.Codigo)) {
+        console.log(`⏭️ Pulando ${tabela.Mes} (já existe no banco)`);
+        continue;
+      }
 
       // Se teve muitos erros consecutivos, provavelmente o veículo não existia antes
       if (errosConsecutivos >= MAX_ERROS_CONSECUTIVOS) {
@@ -152,11 +247,16 @@ export default async function handler(req, res) {
     }
 
     // Resumo
-    const sucesso = registrosSalvos > 0;
+    const totalFinal = registrosSalvos + tabelasExistentes.size;
+    const sucesso = registrosSalvos > 0 || tabelasExistentes.size > 0;
 
     // Mensagem personalizada baseada na situação
     let message;
-    if (sucesso) {
+    if (apenasAtualizar && registrosSalvos > 0) {
+      message = `✅ ${registrosSalvos} novo(s) mês(es) adicionado(s)! Total: ${totalFinal} meses de histórico.`;
+    } else if (apenasAtualizar && registrosSalvos === 0) {
+      message = `✅ Histórico já está atualizado! (${tabelasExistentes.size} meses)`;
+    } else if (sucesso) {
       if (registrosSalvos < meses) {
         message = `✅ ${registrosSalvos} meses de histórico obtidos! (veículo existe na FIPE desde ${
           resultados[resultados.length - 1]?.mes || "N/A"
@@ -171,11 +271,13 @@ export default async function handler(req, res) {
     const status = {
       success: sucesso,
       registrosSalvos,
+      registrosExistentes: tabelasExistentes.size,
       erros,
-      total: mesesParaBuscar,
-      mesesDisponiveis: registrosSalvos,
+      total: totalFinal,
+      mesesDisponiveis: totalFinal,
       resultados,
       message,
+      jaExistia: apenasAtualizar,
     };
 
     console.log("\n📊 Resumo:");
