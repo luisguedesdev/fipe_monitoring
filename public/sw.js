@@ -1,6 +1,9 @@
-const CACHE_NAME = "drive-price-x-v1";
-const STATIC_CACHE = "fipe-static-v1";
-const DATA_CACHE = "fipe-data-v1";
+// VERSÃO AUTO-GERADA: Atualize este timestamp a cada deploy
+// Ou use: Date.now() no build para gerar automaticamente
+const CACHE_VERSION = "20241203-1";
+const CACHE_NAME = `drive-price-x-${CACHE_VERSION}`;
+const STATIC_CACHE = `fipe-static-${CACHE_VERSION}`;
+const DATA_CACHE = `fipe-data-${CACHE_VERSION}`;
 
 // Arquivos estáticos para cache
 const STATIC_FILES = [
@@ -8,29 +11,30 @@ const STATIC_FILES = [
   "/todos",
   "/resultado",
   "/manifest.json",
-  "/offline.html",
 ];
 
 // Instalação do Service Worker
 self.addEventListener("install", (event) => {
-  console.log("[SW] Installing Service Worker...");
+  console.log("[SW] Installing Service Worker...", CACHE_VERSION);
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       console.log("[SW] Caching static files");
       return cache.addAll(STATIC_FILES);
     })
   );
+  // Força ativação imediata sem esperar
   self.skipWaiting();
 });
 
 // Ativação e limpeza de caches antigos
 self.addEventListener("activate", (event) => {
-  console.log("[SW] Activating Service Worker...");
+  console.log("[SW] Activating Service Worker...", CACHE_VERSION);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== STATIC_CACHE && cacheName !== DATA_CACHE) {
+          // Remove TODOS os caches que não são da versão atual
+          if (!cacheName.includes(CACHE_VERSION)) {
             console.log("[SW] Removing old cache:", cacheName);
             return caches.delete(cacheName);
           }
@@ -38,6 +42,7 @@ self.addEventListener("activate", (event) => {
       );
     })
   );
+  // Força todos os clientes a usarem o novo SW imediatamente
   self.clients.claim();
 });
 
