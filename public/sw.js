@@ -6,12 +6,7 @@ const STATIC_CACHE = `fipe-static-${CACHE_VERSION}`;
 const DATA_CACHE = `fipe-data-${CACHE_VERSION}`;
 
 // Arquivos estáticos para cache
-const STATIC_FILES = [
-  "/",
-  "/todos",
-  "/resultado",
-  "/manifest.json",
-];
+const STATIC_FILES = ["/", "/todos", "/resultado", "/manifest.json"];
 
 // Instalação do Service Worker
 self.addEventListener("install", (event) => {
