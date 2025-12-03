@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import Head from "next/head";
+import { AuthProvider } from "../contexts/AuthContext";
 import "../styles/globals.css";
 
 export default function App({ Component, pageProps }) {
@@ -34,7 +35,7 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <>
+    <AuthProvider>
       <Head>
         {/* PWA Meta Tags */}
         <meta
@@ -61,6 +62,6 @@ export default function App({ Component, pageProps }) {
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
       </Head>
       <Component {...pageProps} />
-    </>
+    </AuthProvider>
   );
 }

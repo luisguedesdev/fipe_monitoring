@@ -3,10 +3,12 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Header from "../components/Header";
+import { useAuth } from "../contexts/AuthContext";
 import styles from "../styles/Home.module.css";
 
 export default function Home() {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const [marcas, setMarcas] = useState([]);
   const [modelos, setModelos] = useState([]);
   const [anos, setAnos] = useState([]);
@@ -18,6 +20,11 @@ export default function Home() {
   const [marcaSelecionada, setMarcaSelecionada] = useState("");
   const [modeloSelecionado, setModeloSelecionado] = useState("");
   const [anoSelecionado, setAnoSelecionado] = useState("");
+
+  // Nomes para passar à API
+  const [marcaNome, setMarcaNome] = useState("");
+  const [modeloNome, setModeloNome] = useState("");
+  const [anoNome, setAnoNome] = useState("");
 
   // Carregar marcas ao montar componente
   useEffect(() => {
@@ -59,9 +66,13 @@ export default function Home() {
 
   const handleMarcaChange = (e) => {
     const marca = e.target.value;
+    const marcaLabel = e.target.options[e.target.selectedIndex]?.text || "";
     setMarcaSelecionada(marca);
+    setMarcaNome(marcaLabel);
     setModeloSelecionado("");
+    setModeloNome("");
     setAnoSelecionado("");
+    setAnoNome("");
     setModelos([]);
     setAnos([]);
     if (marca) {
@@ -71,15 +82,72 @@ export default function Home() {
 
   const handleModeloChange = (e) => {
     const modelo = e.target.value;
+    const modeloLabel = e.target.options[e.target.selectedIndex]?.text || "";
     setModeloSelecionado(modelo);
+    setModeloNome(modeloLabel);
     setAnoSelecionado("");
+    setAnoNome("");
     setAnos([]);
     if (modelo && marcaSelecionada) {
       carregarAnos(marcaSelecionada, modelo);
     }
   };
 
-  const consultarESalvar = async () => {
+  const handleAnoChange = (e) => {
+    const ano = e.target.value;
+    const anoLabel = e.target.options[e.target.selectedIndex]?.text || "";
+    setAnoSelecionado(ano);
+    setAnoNome(anoLabel);
+  };
+
+  // Consulta simples para visitantes (sem salvar no banco)
+  const consultarSimples = async () => {
+    if (!marcaSelecionada || !modeloSelecionado || !anoSelecionado) {
+      setResultado("Selecione marca, modelo e ano!");
+      return;
+    }
+
+    setLoading(true);
+    setResultado("");
+
+    try {
+      const response = await fetch("/api/consultar-fipe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          marcaId: marcaSelecionada,
+          modeloId: modeloSelecionado,
+          anoId: anoSelecionado,
+          marcaNome,
+          modeloNome,
+          anoNome,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Erro na consulta");
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Redirecionar para página de resultado com parâmetros
+        router.push(
+          `/resultado?marca=${marcaSelecionada}&modelo=${modeloSelecionado}&ano=${anoSelecionado}`
+        );
+      } else {
+        setResultado(`❌ ${data.error || "Veículo não encontrado na FIPE"}`);
+      }
+    } catch (error) {
+      console.error("Erro na consulta:", error);
+      setResultado(`❌ Erro na consulta: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Consulta completa para usuários logados (com histórico e salvamento)
+  const consultarCompleto = async () => {
     if (!marcaSelecionada || !modeloSelecionado || !anoSelecionado) {
       setResultado("Selecione marca, modelo e ano!");
       return;
@@ -125,6 +193,15 @@ export default function Home() {
     }
   };
 
+  // Função principal de consulta - decide qual método usar
+  const consultarESalvar = async () => {
+    if (isAuthenticated) {
+      await consultarCompleto();
+    } else {
+      await consultarSimples();
+    }
+  };
+
   return (
     <>
       <Header />
@@ -141,8 +218,22 @@ export default function Home() {
         <div className={styles.pageHeader}>
           <h1>Nova Consulta</h1>
           <p>
-            Consulte preços de veículos e armazene histórico automaticamente
+            {isAuthenticated
+              ? "Consulte preços de veículos e armazene histórico automaticamente"
+              : "Consulte o preço FIPE atual de veículos"}
           </p>
+          {!isAuthenticated && (
+            <div className={styles.loginBanner}>
+              <p>
+                🔐{" "}
+                <Link href="/login">
+                  <strong>Faça login</strong>
+                </Link>{" "}
+                para ver o histórico completo de 24 meses, gráficos de evolução
+                e adicionar veículos à sua conta!
+              </p>
+            </div>
+          )}
         </div>
 
         <div className={styles.formContainer}>
@@ -201,7 +292,7 @@ export default function Home() {
             <select
               id="selectAno"
               value={anoSelecionado}
-              onChange={(e) => setAnoSelecionado(e.target.value)}
+              onChange={handleAnoChange}
               disabled={!modeloSelecionado}
               className={styles.select}
             >
@@ -220,8 +311,21 @@ export default function Home() {
 
           <div className={styles.formGroup}>
             <p className={styles.infoText}>
-              📊 O sistema consultará automaticamente os últimos{" "}
-              <strong>24 meses</strong> de histórico de preços
+              {isAuthenticated ? (
+                <>
+                  📊 O sistema consultará automaticamente os últimos{" "}
+                  <strong>24 meses</strong> de histórico de preços e salvará no
+                  banco de dados
+                </>
+              ) : (
+                <>
+                  📊 Consulta do preço FIPE do <strong>mês atual</strong>
+                  <br />
+                  <small style={{ color: "#888" }}>
+                    Faça login para ver o histórico completo de 24 meses
+                  </small>
+                </>
+              )}
             </p>
           </div>
 
@@ -235,7 +339,11 @@ export default function Home() {
             }
             className={styles.btnConsultar}
           >
-            {loading ? "🔄 Consultando..." : "🔍 Consultar e Armazenar"}
+            {loading
+              ? "🔄 Consultando..."
+              : isAuthenticated
+              ? "🔍 Consultar e Armazenar (24 meses)"
+              : "🔍 Consultar Preço Atual"}
           </button>
 
           {resultado && (

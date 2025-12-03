@@ -14,6 +14,7 @@
   align-items: center;
   justify-content: space-between;
   height: 70px;
+  gap: 16px;
 }
 
 .logo {
@@ -46,6 +47,8 @@
 .nav {
   display: flex;
   gap: 8px;
+  flex: 1;
+  justify-content: center;
 }
 
 .navLink {
@@ -79,7 +82,241 @@
   font-size: 1.1rem;
 }
 
+/* Auth Area */
+.authArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authLoading {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #e63946;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.authButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.loginButton {
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loginButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+}
+
+.registerButton {
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #e63946 0%, #d62839 100%);
+}
+
+.registerButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
+  text-decoration: none;
+}
+
+/* User Menu */
+.userMenu {
+  position: relative;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.userButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e63946 0%, #d62839 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.userName {
+  font-weight: 500;
+  font-size: 0.9rem;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  font-size: 0.6rem;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.userButton[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  z-index: 1001;
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownHeader {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dropdownName {
+  display: block;
+  font-weight: 600;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.dropdownEmail {
+  display: block;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdownItem:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.adminLink {
+  border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+.adminLink:hover {
+  border-color: rgba(155, 89, 182, 0.5);
+  background: rgba(155, 89, 182, 0.15);
+}
+
+.adminLink.active {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+.adminDropdownItem {
+  color: #9b59b6;
+}
+
+.adminDropdownItem:hover {
+  background: rgba(155, 89, 182, 0.2);
+  color: #a569bd;
+}
+
 /* Responsive */
+@media (max-width: 768px) {
+  .userName {
+    display: none;
+  }
+
+  .chevron {
+    display: none;
+  }
+
+  .userButton {
+    padding: 4px;
+    background: transparent;
+    border: none;
+  }
+
+  .authButtons .loginButton {
+    display: none;
+  }
+
+  .registerButton {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
 @media (max-width: 640px) {
   .header {
     padding: 0 16px;
@@ -117,7 +354,7 @@
     padding: 8px 16px;
     gap: 4px;
     border-radius: 12px;
-    min-width: 80px;
+    min-width: 70px;
   }
 
   .navText {
@@ -133,5 +370,16 @@
   .navLink.active {
     background: rgba(230, 57, 70, 0.2);
     color: #e63946;
+  }
+
+  .authArea {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .dropdown {
+    right: -8px;
   }
 }

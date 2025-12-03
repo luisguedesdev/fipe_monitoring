@@ -3,13 +3,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Header from "../../components/Header";
-import OfflineIndicator from "../../components/OfflineIndicator";
-import {
-  saveVeiculos,
-  getVeiculos as getOfflineVeiculos,
-  deleteVeiculo as deleteOfflineVeiculo,
-  getLastSyncTime,
-} from "../../lib/offlineStorage";
 import styles from "../../styles/Todos.module.css";
 
 const MAX_COMPARACAO = 3;
@@ -22,80 +15,27 @@ export default function TodosVeiculos() {
   const [filtroAno, setFiltroAno] = useState("");
   const [filtroBusca, setFiltroBusca] = useState("");
   const [ordenacao, setOrdenacao] = useState("recente");
-  const [deletando, setDeletando] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  const [isOnline, setIsOnline] = useState(true);
-  const [isOfflineData, setIsOfflineData] = useState(false);
-  const [lastSync, setLastSync] = useState(null);
   const [selecionados, setSelecionados] = useState([]);
   const [modoSelecao, setModoSelecao] = useState(false);
   const [atualizando, setAtualizando] = useState(false);
   const [atualizacaoStatus, setAtualizacaoStatus] = useState(null);
 
   useEffect(() => {
-    // Verificar status de conexão
-    setIsOnline(navigator.onLine);
-
-    const handleOnline = () => {
-      setIsOnline(true);
-      // Recarregar dados quando voltar online
-      carregarVeiculos();
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
     carregarVeiculos();
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const carregarVeiculos = async () => {
     try {
-      // Tentar buscar da API primeiro
-      if (navigator.onLine) {
-        const response = await fetch("/api/veiculos");
-        const data = await response.json();
+      const response = await fetch("/api/veiculos");
+      const data = await response.json();
 
-        if (data.success) {
-          setVeiculos(data.veiculos);
-          setIsOfflineData(false);
-          // Salvar no IndexedDB para uso offline
-          await saveVeiculos(data.veiculos);
-          setLastSync(new Date());
-        }
-      } else {
-        // Se offline, carregar do IndexedDB
-        await carregarDadosOffline();
+      if (data.success) {
+        setVeiculos(data.veiculos);
       }
     } catch (error) {
       console.error("Erro ao carregar veículos:", error);
-      // Fallback para dados offline em caso de erro
-      await carregarDadosOffline();
     } finally {
       setLoading(false);
-    }
-  };
-
-  const carregarDadosOffline = async () => {
-    try {
-      const offlineVeiculos = await getOfflineVeiculos();
-      if (offlineVeiculos.length > 0) {
-        setVeiculos(offlineVeiculos);
-        setIsOfflineData(true);
-        const syncTime = await getLastSyncTime();
-        setLastSync(syncTime);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados offline:", error);
     }
   };
 
@@ -177,95 +117,6 @@ export default function TodosVeiculos() {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const deletarVeiculo = async (veiculo, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const chave = `${veiculo.codigoMarca}-${veiculo.codigoModelo}-${veiculo.anoModelo}`;
-    setDeletando(chave);
-
-    try {
-      if (navigator.onLine) {
-        const response = await fetch("/api/veiculos/deletar", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            codigoMarca: veiculo.codigoMarca,
-            codigoModelo: veiculo.codigoModelo,
-            anoModelo: veiculo.anoModelo,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          // Remover da lista local
-          setVeiculos((prev) =>
-            prev.filter(
-              (v) =>
-                !(
-                  v.codigoMarca === veiculo.codigoMarca &&
-                  v.codigoModelo === veiculo.codigoModelo &&
-                  v.anoModelo === veiculo.anoModelo
-                )
-            )
-          );
-          // Remover do IndexedDB também
-          await deleteOfflineVeiculo(
-            veiculo.codigoMarca,
-            veiculo.codigoModelo,
-            veiculo.anoModelo
-          );
-          setConfirmDelete(null);
-        } else {
-          alert("Erro ao deletar veículo: " + data.error);
-        }
-      } else {
-        // Offline - apenas remover localmente (será sincronizado depois)
-        setVeiculos((prev) =>
-          prev.filter(
-            (v) =>
-              !(
-                v.codigoMarca === veiculo.codigoMarca &&
-                v.codigoModelo === veiculo.codigoModelo &&
-                v.anoModelo === veiculo.anoModelo
-              )
-          )
-        );
-        await deleteOfflineVeiculo(
-          veiculo.codigoMarca,
-          veiculo.codigoModelo,
-          veiculo.anoModelo
-        );
-        setConfirmDelete(null);
-        alert(
-          "Veículo removido localmente. Será sincronizado quando voltar online."
-        );
-      }
-    } catch (error) {
-      console.error("Erro ao deletar:", error);
-      alert("Erro ao deletar veículo");
-    } finally {
-      setDeletando(null);
-    }
-  };
-
-  const abrirConfirmacao = (veiculo, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setConfirmDelete(veiculo);
-  };
-
-  const fecharConfirmacao = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setConfirmDelete(null);
   };
 
   // Funções de seleção para comparação
@@ -408,12 +259,6 @@ export default function TodosVeiculos() {
   return (
     <>
       <Header />
-      <OfflineIndicator
-        isOnline={isOnline}
-        isOfflineData={isOfflineData}
-        lastSync={lastSync}
-        onSync={carregarVeiculos}
-      />
       <div className={styles.container}>
         <Head>
           <title>Todos os Veículos - Drive Price X</title>
@@ -690,66 +535,54 @@ export default function TodosVeiculos() {
                     </div>
                   ) : (
                     // Modo normal, usar Link
-                    <>
-                      <Link
-                        href={`/resultado?marca=${veiculo.codigoMarca}&modelo=${veiculo.codigoModelo}&ano=${veiculo.anoModelo}`}
-                        className={styles.veiculoCard}
-                      >
-                        <div className={styles.veiculoHeader}>
-                          <span className={styles.veiculoMarca}>
-                            {veiculo.nomeMarca}
-                          </span>
-                          <span
-                            className={`${styles.veiculoVariacao} ${
-                              veiculo.variacao > 0
-                                ? styles.variacaoUp
-                                : veiculo.variacao < 0
-                                ? styles.variacaoDown
-                                : ""
-                            }`}
-                          >
-                            {formatarVariacao(veiculo.variacao)}
-                          </span>
-                        </div>
-
-                        <h3 className={styles.veiculoModelo}>
-                          {veiculo.nomeModelo}
-                        </h3>
-                        <span className={styles.veiculoAno}>
-                          {veiculo.nomeAno}
+                    <Link
+                      href={`/resultado?marca=${veiculo.codigoMarca}&modelo=${veiculo.codigoModelo}&ano=${veiculo.anoModelo}`}
+                      className={styles.veiculoCard}
+                    >
+                      <div className={styles.veiculoHeader}>
+                        <span className={styles.veiculoMarca}>
+                          {veiculo.nomeMarca}
                         </span>
+                        <span
+                          className={`${styles.veiculoVariacao} ${
+                            veiculo.variacao > 0
+                              ? styles.variacaoUp
+                              : veiculo.variacao < 0
+                              ? styles.variacaoDown
+                              : ""
+                          }`}
+                        >
+                          {formatarVariacao(veiculo.variacao)}
+                        </span>
+                      </div>
 
-                        <div className={styles.veiculoPreco}>
-                          <span className={styles.precoLabel}>
-                            Último preço
-                          </span>
-                          <span className={styles.precoValor}>
-                            {formatarMoeda(veiculo.ultimoPrecoNum)}
-                          </span>
+                      <h3 className={styles.veiculoModelo}>
+                        {veiculo.nomeModelo}
+                      </h3>
+                      <span className={styles.veiculoAno}>
+                        {veiculo.nomeAno}
+                      </span>
+
+                      <div className={styles.veiculoPreco}>
+                        <span className={styles.precoLabel}>Último preço</span>
+                        <span className={styles.precoValor}>
+                          {formatarMoeda(veiculo.ultimoPrecoNum)}
+                        </span>
+                      </div>
+
+                      <div className={styles.veiculoInfo}>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoIcon}>📊</span>
+                          <span>{veiculo.totalRegistros} registros</span>
                         </div>
-
-                        <div className={styles.veiculoInfo}>
-                          <div className={styles.infoItem}>
-                            <span className={styles.infoIcon}>📊</span>
-                            <span>{veiculo.totalRegistros} registros</span>
-                          </div>
-                          <div className={styles.infoItem}>
-                            <span className={styles.infoIcon}>📅</span>
-                            <span>{formatarData(veiculo.ultimaConsulta)}</span>
-                          </div>
+                        <div className={styles.infoItem}>
+                          <span className={styles.infoIcon}>📅</span>
+                          <span>{formatarData(veiculo.ultimaConsulta)}</span>
                         </div>
+                      </div>
 
-                        <div className={styles.verMais}>Ver histórico →</div>
-                      </Link>
-
-                      <button
-                        className={styles.btnDeletar}
-                        onClick={(e) => abrirConfirmacao(veiculo, e)}
-                        title="Deletar veículo"
-                      >
-                        🗑️
-                      </button>
-                    </>
+                      <div className={styles.verMais}>Ver histórico →</div>
+                    </Link>
                   )}
                 </div>
               );
@@ -796,44 +629,6 @@ export default function TodosVeiculos() {
               >
                 Comparar ({selecionados.length})
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Modal de confirmação */}
-        {confirmDelete && (
-          <div className={styles.modalOverlay} onClick={fecharConfirmacao}>
-            <div
-              className={styles.modalContent}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3>⚠️ Confirmar exclusão</h3>
-              <p>
-                Tem certeza que deseja excluir o veículo{" "}
-                <strong>
-                  {confirmDelete.nomeMarca} {confirmDelete.nomeModelo}
-                </strong>
-                ?
-              </p>
-              <p className={styles.modalWarning}>
-                Esta ação irá remover {confirmDelete.totalRegistros} registros
-                de histórico e não pode ser desfeita.
-              </p>
-              <div className={styles.modalButtons}>
-                <button
-                  className={styles.btnCancelar}
-                  onClick={fecharConfirmacao}
-                >
-                  Cancelar
-                </button>
-                <button
-                  className={styles.btnConfirmarDelete}
-                  onClick={(e) => deletarVeiculo(confirmDelete, e)}
-                  disabled={deletando !== null}
-                >
-                  {deletando ? "Excluindo..." : "Sim, excluir"}
-                </button>
-              </div>
             </div>
           </div>
         )}

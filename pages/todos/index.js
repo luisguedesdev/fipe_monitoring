@@ -3,83 +3,32 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Header from "../../components/Header";
-import OfflineIndicator from "../../components/OfflineIndicator";
-import {
-  saveVeiculos,
-  getVeiculos as getOfflineVeiculos,
-  getLastSyncTime,
-} from "../../lib/offlineStorage";
 import styles from "../../styles/TodosAgrupado.module.css";
 
 export default function TodosVeiculosAgrupado() {
   const router = useRouter();
   const [veiculos, setVeiculos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isOnline, setIsOnline] = useState(true);
-  const [isOfflineData, setIsOfflineData] = useState(false);
-  const [lastSync, setLastSync] = useState(null);
   const [marcaExpandida, setMarcaExpandida] = useState(null);
   const [atualizando, setAtualizando] = useState(false);
   const [atualizacaoStatus, setAtualizacaoStatus] = useState(null);
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
-
-    const handleOnline = () => {
-      setIsOnline(true);
-      carregarVeiculos();
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
     carregarVeiculos();
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const carregarVeiculos = async () => {
     try {
-      if (navigator.onLine) {
-        const response = await fetch("/api/veiculos");
-        const data = await response.json();
+      const response = await fetch("/api/veiculos");
+      const data = await response.json();
 
-        if (data.success) {
-          setVeiculos(data.veiculos);
-          setIsOfflineData(false);
-          await saveVeiculos(data.veiculos);
-          setLastSync(new Date());
-        }
-      } else {
-        await carregarDadosOffline();
+      if (data.success) {
+        setVeiculos(data.veiculos);
       }
     } catch (error) {
       console.error("Erro ao carregar veículos:", error);
-      await carregarDadosOffline();
     } finally {
       setLoading(false);
-    }
-  };
-
-  const carregarDadosOffline = async () => {
-    try {
-      const offlineVeiculos = await getOfflineVeiculos();
-      if (offlineVeiculos.length > 0) {
-        setVeiculos(offlineVeiculos);
-        setIsOfflineData(true);
-        const syncTime = await getLastSyncTime();
-        setLastSync(syncTime);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados offline:", error);
     }
   };
 
@@ -209,12 +158,6 @@ export default function TodosVeiculosAgrupado() {
   return (
     <>
       <Header />
-      <OfflineIndicator
-        isOnline={isOnline}
-        isOfflineData={isOfflineData}
-        lastSync={lastSync}
-        onSync={carregarVeiculos}
-      />
       <div className={styles.container}>
         <Head>
           <title>Veículos por Marca - Drive Price X</title>
@@ -232,11 +175,6 @@ export default function TodosVeiculosAgrupado() {
             {marcasOrdenadas.length} marca
             {marcasOrdenadas.length !== 1 ? "s" : ""}
           </p>
-          {isOfflineData && (
-            <span className={styles.offlineBadge}>
-              📱 Modo Offline • Sincronizado: {formatarDataHora(lastSync)}
-            </span>
-          )}
         </div>
 
         {/* Botões de ação */}
@@ -249,7 +187,7 @@ export default function TodosVeiculosAgrupado() {
               atualizando ? styles.btnAtualizando : ""
             }`}
             onClick={atualizarTodos}
-            disabled={atualizando || !isOnline}
+            disabled={atualizando}
           >
             {atualizando ? (
               <>
@@ -298,11 +236,9 @@ export default function TodosVeiculosAgrupado() {
             <span className={styles.emptyIcon}>🔍</span>
             <h2>Nenhum veículo cadastrado</h2>
             <p>Faça sua primeira consulta na página inicial</p>
-            {isOnline && (
-              <Link href="/" className={styles.btnPrimary}>
-                Consultar veículo
-              </Link>
-            )}
+            <Link href="/" className={styles.btnPrimary}>
+              Consultar veículo
+            </Link>
           </div>
         ) : (
           <div className={styles.marcasContainer}>

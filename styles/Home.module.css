@@ -25,6 +25,29 @@
   margin: 0;
 }
 
+.loginBanner {
+  margin-top: 15px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.loginBanner p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 1;
+}
+
+.loginBanner a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.loginBanner a:hover {
+  text-decoration: none;
+}
+
 .formContainer {
   padding: 50px;
 }
