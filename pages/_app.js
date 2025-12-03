@@ -47,7 +47,7 @@ export default function App({ Component, pageProps }) {
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <meta name="apple-mobile-web-app-title" content="FIPE Monitor" />
+        <meta name="apple-mobile-web-app-title" content="Drive Price X" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=no" />
 

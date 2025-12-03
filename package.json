@@ -1,5 +1,5 @@
 {
-  "name": "fipe-monitoring-nextjs",
+  "name": "drive-price-x",
   "version": "1.0.0",
   "description": "Sistema de monitoramento de preços FIPE com Next.js + Neon",
   "main": "pages/index.js",

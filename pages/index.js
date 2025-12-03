@@ -130,7 +130,7 @@ export default function Home() {
       <Header />
       <div className={styles.container}>
         <Head>
-          <title>FIPE Monitor - Consulta e Armazenamento</title>
+          <title>Drive Price X - Consulta e Armazenamento</title>
           <meta
             name="description"
             content="Sistema de monitoramento de preços FIPE"

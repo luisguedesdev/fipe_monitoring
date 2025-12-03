@@ -4,7 +4,7 @@ const DatabaseTestSuite = require("./database.test");
 const ApiTestSuite = require("./api.test");
 
 async function runAllTests() {
-  console.log("🔬 FIPE MONITORING - SUITE COMPLETA DE TESTES");
+  console.log("🔬 DRIVE PRICE X - SUITE COMPLETA DE TESTES");
   console.log("=".repeat(60));
   console.log("");
 

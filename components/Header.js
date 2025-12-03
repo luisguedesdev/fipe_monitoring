@@ -9,8 +9,8 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.container}>
         <Link href="/" className={styles.logo}>
-          <span className={styles.logoIcon}>🚗</span>
-          <span className={styles.logoText}>FIPE Monitor</span>
+          <span className={styles.logoIcon}>💰</span>
+          <span className={styles.logoText}>Drive Price X</span>
         </Link>
 
         <nav className={styles.nav}>

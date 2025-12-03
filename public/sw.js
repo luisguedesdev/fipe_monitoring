@@ -1,4 +1,4 @@
-const CACHE_NAME = "fipe-monitor-v1";
+const CACHE_NAME = "drive-price-x-v1";
 const STATIC_CACHE = "fipe-static-v1";
 const DATA_CACHE = "fipe-data-v1";
 

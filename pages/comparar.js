@@ -308,7 +308,7 @@ export default function CompararVeiculos() {
         <Header />
         <div className={styles.container}>
           <Head>
-            <title>Comparar Veículos - FIPE Monitor</title>
+            <title>Comparar Veículos - Drive Price X</title>
           </Head>
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>📊</span>
@@ -328,7 +328,7 @@ export default function CompararVeiculos() {
       <Header />
       <div className={styles.container}>
         <Head>
-          <title>Comparar Veículos - FIPE Monitor</title>
+          <title>Comparar Veículos - Drive Price X</title>
           <meta
             name="description"
             content="Compare preços de veículos da tabela FIPE"

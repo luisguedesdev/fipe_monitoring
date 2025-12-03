@@ -48,7 +48,7 @@ const htmlContent = `
   </style>
 </head>
 <body>
-  <h1>🚗 FIPE Monitor - PWA Icon Generator</h1>
+  <h1>🚗 Drive Price X - PWA Icon Generator</h1>
   
   <div class="instructions">
     <p>Clique em "Baixar" em cada ícone e salve na pasta <code>public/icons/</code></p>

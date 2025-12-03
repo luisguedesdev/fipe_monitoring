@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Header from "../components/Header";
-import OfflineIndicator from "../components/OfflineIndicator";
+import Header from "../../components/Header";
+import OfflineIndicator from "../../components/OfflineIndicator";
 import {
   saveVeiculos,
   getVeiculos as getOfflineVeiculos,
   deleteVeiculo as deleteOfflineVeiculo,
   getLastSyncTime,
-} from "../lib/offlineStorage";
-import styles from "../styles/Todos.module.css";
+} from "../../lib/offlineStorage";
+import styles from "../../styles/Todos.module.css";
 
 const MAX_COMPARACAO = 3;
 
@@ -416,7 +416,7 @@ export default function TodosVeiculos() {
       />
       <div className={styles.container}>
         <Head>
-          <title>Todos os Veículos - FIPE Monitor</title>
+          <title>Todos os Veículos - Drive Price X</title>
           <meta
             name="description"
             content="Lista de todos os veículos monitorados"
@@ -441,6 +441,9 @@ export default function TodosVeiculos() {
         {/* Botões de ação */}
         {veiculos.length > 0 && !modoSelecao && (
           <div className={styles.acoesContainer}>
+            <Link href="/todos" className={styles.btnVoltar}>
+              ← Ver por marca
+            </Link>
             {veiculos.length >= 2 && (
               <button
                 className={styles.btnComparar}
