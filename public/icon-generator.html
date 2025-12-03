@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>PWA Icon Generator</title>
   <style>
@@ -10,15 +10,29 @@
       background: #1a1a2e;
       color: #fff;
     }
-    h1 { margin-bottom: 20px; }
-    .icons { display: flex; flex-wrap: wrap; gap: 20px; }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .icons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
     .icon-item {
       text-align: center;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       padding: 20px;
       border-radius: 10px;
     }
-    canvas { display: block; margin: 0 auto 10px; }
+
+    canvas {
+      display: block;
+      margin: 0 auto 10px;
+    }
+
     button {
       padding: 10px 20px;
       background: #e63946;
@@ -28,42 +42,47 @@
       cursor: pointer;
       margin-top: 10px;
     }
-    button:hover { background: #d62839; }
+
+    button:hover {
+      background: #d62839;
+    }
+
     .instructions {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       padding: 20px;
       border-radius: 10px;
       margin-bottom: 20px;
     }
   </style>
 </head>
+
 <body>
   <h1>🚗 Drive Price X - PWA Icon Generator</h1>
-  
+
   <div class="instructions">
     <p>Clique em "Baixar" em cada ícone e salve na pasta <code>public/icons/</code></p>
   </div>
-  
+
   <div class="icons" id="icons"></div>
 
   <script>
-    const sizes = [72,96,128,144,152,192,384,512];
+    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
     const container = document.getElementById('icons');
-    
+
     sizes.forEach(size => {
       const div = document.createElement('div');
       div.className = 'icon-item';
-      
+
       const canvas = document.createElement('canvas');
       canvas.width = size;
       canvas.height = size;
       const ctx = canvas.getContext('2d');
-      
+
       // Background gradient
       const gradient = ctx.createLinearGradient(0, 0, size, size);
       gradient.addColorStop(0, '#e63946');
       gradient.addColorStop(1, '#d62839');
-      
+
       // Rounded rectangle background
       const radius = size * 0.15;
       ctx.beginPath();
@@ -79,18 +98,18 @@
       ctx.closePath();
       ctx.fillStyle = gradient;
       ctx.fill();
-      
+
       // Car icon
       const scale = size / 512;
       ctx.save();
       ctx.translate(80 * scale, 140 * scale);
-      
+
       // Car body
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.beginPath();
       ctx.roundRect(0, 120 * scale, 352 * scale, 144 * scale, 32 * scale);
       ctx.fill();
-      
+
       // Car top
       ctx.beginPath();
       ctx.moveTo(280 * scale, 120 * scale);
@@ -99,7 +118,7 @@
       ctx.lineTo(72 * scale, 120 * scale);
       ctx.closePath();
       ctx.fill();
-      
+
       // Windows
       ctx.fillStyle = '#1a1a2e';
       ctx.beginPath();
@@ -109,7 +128,7 @@
       ctx.lineTo(256 * scale, 116 * scale);
       ctx.closePath();
       ctx.fill();
-      
+
       // Wheels
       ctx.beginPath();
       ctx.arc(80 * scale, 264 * scale, 40 * scale, 0, Math.PI * 2);
@@ -117,21 +136,21 @@
       ctx.beginPath();
       ctx.arc(272 * scale, 264 * scale, 40 * scale, 0, Math.PI * 2);
       ctx.fill();
-      
+
       ctx.restore();
-      
+
       // FIPE text
       ctx.fillStyle = 'white';
       ctx.font = 'bold ' + (60 * scale) + 'px Arial';
       ctx.textAlign = 'center';
       ctx.fillText('FIPE', size / 2, 430 * scale);
-      
+
       div.appendChild(canvas);
-      
+
       const label = document.createElement('p');
       label.textContent = size + 'x' + size;
       div.appendChild(label);
-      
+
       const button = document.createElement('button');
       button.textContent = 'Baixar';
       button.onclick = () => {
@@ -141,9 +160,10 @@
         link.click();
       };
       div.appendChild(button);
-      
+
       container.appendChild(div);
     });
   </script>
 </body>
+
 </html>

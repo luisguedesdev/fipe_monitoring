@@ -229,7 +229,8 @@ export default function TodosVeiculosAgrupado() {
           <h1>📋 Veículos Monitorados</h1>
           <p>
             {veiculos.length} veículo{veiculos.length !== 1 ? "s" : ""} em{" "}
-            {marcasOrdenadas.length} marca{marcasOrdenadas.length !== 1 ? "s" : ""}
+            {marcasOrdenadas.length} marca
+            {marcasOrdenadas.length !== 1 ? "s" : ""}
           </p>
           {isOfflineData && (
             <span className={styles.offlineBadge}>
@@ -244,7 +245,9 @@ export default function TodosVeiculosAgrupado() {
             📋 Ver lista completa
           </Link>
           <button
-            className={`${styles.btnAtualizar} ${atualizando ? styles.btnAtualizando : ""}`}
+            className={`${styles.btnAtualizar} ${
+              atualizando ? styles.btnAtualizando : ""
+            }`}
             onClick={atualizarTodos}
             disabled={atualizando || !isOnline}
           >
@@ -261,7 +264,9 @@ export default function TodosVeiculosAgrupado() {
 
         {/* Status da atualização */}
         {atualizacaoStatus && (
-          <div className={`${styles.statusBar} ${styles[atualizacaoStatus.tipo]}`}>
+          <div
+            className={`${styles.statusBar} ${styles[atualizacaoStatus.tipo]}`}
+          >
             {atualizacaoStatus.mensagem}
           </div>
         )}
@@ -309,7 +314,9 @@ export default function TodosVeiculosAgrupado() {
               return (
                 <div key={marca} className={styles.marcaCard}>
                   <button
-                    className={`${styles.marcaHeader} ${isExpandida ? styles.marcaExpandida : ""}`}
+                    className={`${styles.marcaHeader} ${
+                      isExpandida ? styles.marcaExpandida : ""
+                    }`}
                     onClick={() => toggleMarca(marca)}
                   >
                     <div className={styles.marcaInfo}>
