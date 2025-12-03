@@ -1,4 +1,4 @@
-import { consultarPrecoAtual } from "../../lib/fipe";
+import { consultarPrecoAtual, parsePreco } from "../../lib/fipe";
 
 /**
  * API para consulta FIPE do mês atual apenas (para visitantes)
@@ -46,6 +46,7 @@ export default async function handler(req, res) {
       },
       precoAtual: {
         valor: resultado.preco,
+        valorNumerico: parsePreco(resultado.preco),
         mesReferencia: resultado.mesReferencia,
         dataConsulta: resultado.dataConsulta,
       },
