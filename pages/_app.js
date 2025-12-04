@@ -10,7 +10,7 @@ export default function App({ Component, pageProps }) {
       // Flag para evitar registros múltiplos
       const SW_REGISTERED_KEY = "sw_registered_version";
       const CURRENT_VERSION = "20241203-3";
-      
+
       navigator.serviceWorker
         .register("/sw.js")
         .then((registration) => {
@@ -18,7 +18,7 @@ export default function App({ Component, pageProps }) {
 
           // Verificar se é primeira vez ou versão diferente
           const registeredVersion = sessionStorage.getItem(SW_REGISTERED_KEY);
-          
+
           if (registeredVersion === CURRENT_VERSION) {
             // Já registrado nesta sessão, não verificar atualizações
             console.log("[App] SW já verificado nesta sessão");
