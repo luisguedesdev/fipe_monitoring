@@ -7,18 +7,26 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     // Registrar Service Worker para funcionalidade offline
     if ("serviceWorker" in navigator) {
+      // Flag para evitar registros múltiplos
+      const SW_REGISTERED_KEY = "sw_registered_version";
+      const CURRENT_VERSION = "20241203-3";
+      
       navigator.serviceWorker
         .register("/sw.js")
         .then((registration) => {
           console.log("[App] Service Worker registrado:", registration.scope);
 
-          // Verificar atualizações imediatamente
-          registration.update();
+          // Verificar se é primeira vez ou versão diferente
+          const registeredVersion = sessionStorage.getItem(SW_REGISTERED_KEY);
+          
+          if (registeredVersion === CURRENT_VERSION) {
+            // Já registrado nesta sessão, não verificar atualizações
+            console.log("[App] SW já verificado nesta sessão");
+            return;
+          }
 
-          // Verificar atualizações a cada 60 segundos
-          setInterval(() => {
-            registration.update();
-          }, 60 * 1000);
+          // Marcar como registrado
+          sessionStorage.setItem(SW_REGISTERED_KEY, CURRENT_VERSION);
 
           // Quando encontrar atualização
           registration.addEventListener("updatefound", () => {
@@ -28,9 +36,9 @@ export default function App({ Component, pageProps }) {
             newWorker.addEventListener("statechange", () => {
               if (newWorker.state === "installed") {
                 if (navigator.serviceWorker.controller) {
-                  // Há uma versão anterior - forçar atualização
-                  console.log("[App] Atualizando para nova versão...");
-                  newWorker.postMessage({ type: "SKIP_WAITING" });
+                  // Há uma versão anterior - mostrar notificação (não forçar reload)
+                  console.log("[App] Nova versão disponível");
+                  // Opcional: mostrar um toast ou banner para o usuário
                 }
               }
             });
@@ -39,16 +47,6 @@ export default function App({ Component, pageProps }) {
         .catch((error) => {
           console.error("[App] Erro ao registrar Service Worker:", error);
         });
-
-      // Quando o novo SW assumir, recarregar a página
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (!refreshing) {
-          refreshing = true;
-          console.log("[App] Recarregando para aplicar atualização...");
-          window.location.reload();
-        }
-      });
     }
   }, []);
 

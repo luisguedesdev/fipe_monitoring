@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -21,6 +21,16 @@ export default function Home() {
   const [modeloSelecionado, setModeloSelecionado] = useState("");
   const [anoSelecionado, setAnoSelecionado] = useState("");
 
+  // Estados de busca/filtro
+  const [buscaMarca, setBuscaMarca] = useState("");
+  const [buscaModelo, setBuscaModelo] = useState("");
+  const [showMarcaList, setShowMarcaList] = useState(false);
+  const [showModeloList, setShowModeloList] = useState(false);
+
+  // Refs para detectar clique fora
+  const marcaRef = useRef(null);
+  const modeloRef = useRef(null);
+
   // Nomes para passar à API
   const [marcaNome, setMarcaNome] = useState("");
   const [modeloNome, setModeloNome] = useState("");
@@ -30,6 +40,36 @@ export default function Home() {
   useEffect(() => {
     carregarMarcas();
   }, []);
+
+  // Fechar listas ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (marcaRef.current && !marcaRef.current.contains(e.target)) {
+        setShowMarcaList(false);
+      }
+      if (modeloRef.current && !modeloRef.current.contains(e.target)) {
+        setShowModeloList(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filtrar marcas baseado na busca
+  const marcasFiltradas = useMemo(() => {
+    if (!buscaMarca.trim()) return marcas;
+    const termo = buscaMarca.toLowerCase().trim();
+    return marcas.filter((marca) => marca.Label.toLowerCase().includes(termo));
+  }, [marcas, buscaMarca]);
+
+  // Filtrar modelos baseado na busca
+  const modelosFiltrados = useMemo(() => {
+    if (!buscaModelo.trim()) return modelos;
+    const termo = buscaModelo.toLowerCase().trim();
+    return modelos.filter((modelo) =>
+      modelo.Label.toLowerCase().includes(termo)
+    );
+  }, [modelos, buscaModelo]);
 
   const carregarMarcas = async () => {
     try {
@@ -64,33 +104,56 @@ export default function Home() {
     }
   };
 
-  const handleMarcaChange = (e) => {
-    const marca = e.target.value;
-    const marcaLabel = e.target.options[e.target.selectedIndex]?.text || "";
-    setMarcaSelecionada(marca);
-    setMarcaNome(marcaLabel);
+  // Selecionar marca da lista
+  const selecionarMarca = (marca) => {
+    setMarcaSelecionada(marca.Value);
+    setMarcaNome(marca.Label);
+    setBuscaMarca(marca.Label);
+    setShowMarcaList(false);
     setModeloSelecionado("");
     setModeloNome("");
+    setBuscaModelo("");
     setAnoSelecionado("");
     setAnoNome("");
     setModelos([]);
     setAnos([]);
-    if (marca) {
-      carregarModelos(marca);
-    }
+    carregarModelos(marca.Value);
   };
 
-  const handleModeloChange = (e) => {
-    const modelo = e.target.value;
-    const modeloLabel = e.target.options[e.target.selectedIndex]?.text || "";
-    setModeloSelecionado(modelo);
-    setModeloNome(modeloLabel);
+  // Selecionar modelo da lista
+  const selecionarModelo = (modelo) => {
+    setModeloSelecionado(modelo.Value);
+    setModeloNome(modelo.Label);
+    setBuscaModelo(modelo.Label);
+    setShowModeloList(false);
     setAnoSelecionado("");
     setAnoNome("");
     setAnos([]);
-    if (modelo && marcaSelecionada) {
-      carregarAnos(marcaSelecionada, modelo);
-    }
+    carregarAnos(marcaSelecionada, modelo.Value);
+  };
+
+  // Limpar marca
+  const limparMarca = () => {
+    setMarcaSelecionada("");
+    setMarcaNome("");
+    setBuscaMarca("");
+    setModeloSelecionado("");
+    setModeloNome("");
+    setBuscaModelo("");
+    setAnoSelecionado("");
+    setAnoNome("");
+    setModelos([]);
+    setAnos([]);
+  };
+
+  // Limpar modelo
+  const limparModelo = () => {
+    setModeloSelecionado("");
+    setModeloNome("");
+    setBuscaModelo("");
+    setAnoSelecionado("");
+    setAnoNome("");
+    setAnos([]);
   };
 
   const handleAnoChange = (e) => {
@@ -238,50 +301,113 @@ export default function Home() {
 
         <div className={styles.formContainer}>
           {/* Etapa 1: Marca */}
-          <div className={styles.formGroup}>
-            <label htmlFor="selectMarca">
+          <div className={styles.formGroup} ref={marcaRef}>
+            <label>
               <span className={styles.stepNumber}>1</span> Marca do Veículo
             </label>
-            <select
-              id="selectMarca"
-              value={marcaSelecionada}
-              onChange={handleMarcaChange}
-              className={styles.select}
-            >
-              <option value="">Selecione uma marca</option>
-              {marcas.map((marca) => (
-                <option key={marca.Value} value={marca.Value}>
-                  {marca.Label}
-                </option>
-              ))}
-            </select>
+            <div className={styles.searchInputContainer}>
+              <input
+                type="text"
+                placeholder="Digite para buscar a marca..."
+                value={buscaMarca}
+                onChange={(e) => {
+                  setBuscaMarca(e.target.value);
+                  setShowMarcaList(true);
+                  if (!e.target.value) limparMarca();
+                }}
+                onFocus={() => setShowMarcaList(true)}
+                className={styles.searchInput}
+              />
+              {marcaSelecionada && (
+                <button
+                  className={styles.clearButton}
+                  onClick={limparMarca}
+                  type="button"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {showMarcaList && !marcaSelecionada && (
+              <div className={styles.searchList}>
+                {marcasFiltradas.length === 0 ? (
+                  <div className={styles.searchEmpty}>
+                    Nenhuma marca encontrada
+                  </div>
+                ) : (
+                  marcasFiltradas.map((marca) => (
+                    <button
+                      key={marca.Value}
+                      className={styles.searchItem}
+                      onClick={() => selecionarMarca(marca)}
+                      type="button"
+                    >
+                      {marca.Label}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Etapa 2: Modelo */}
-          <div className={styles.formGroup}>
-            <label htmlFor="selectModelo">
+          <div className={styles.formGroup} ref={modeloRef}>
+            <label>
               <span className={styles.stepNumber}>2</span> Modelo
             </label>
-            <select
-              id="selectModelo"
-              value={modeloSelecionado}
-              onChange={handleModeloChange}
-              disabled={!marcaSelecionada || loadingModelos}
-              className={styles.select}
-            >
-              <option value="">
-                {loadingModelos
-                  ? "Carregando modelos..."
-                  : marcaSelecionada
-                  ? "Selecione um modelo"
-                  : "Primeiro selecione uma marca"}
-              </option>
-              {modelos.map((modelo) => (
-                <option key={modelo.Value} value={modelo.Value}>
-                  {modelo.Label}
-                </option>
-              ))}
-            </select>
+            <div className={styles.searchInputContainer}>
+              <input
+                type="text"
+                placeholder={
+                  loadingModelos
+                    ? "Carregando modelos..."
+                    : marcaSelecionada
+                    ? "Digite para buscar o modelo..."
+                    : "Primeiro selecione uma marca"
+                }
+                value={buscaModelo}
+                onChange={(e) => {
+                  setBuscaModelo(e.target.value);
+                  setShowModeloList(true);
+                  if (!e.target.value) limparModelo();
+                }}
+                onFocus={() => setShowModeloList(true)}
+                disabled={!marcaSelecionada || loadingModelos}
+                className={styles.searchInput}
+              />
+              {modeloSelecionado && (
+                <button
+                  className={styles.clearButton}
+                  onClick={limparModelo}
+                  type="button"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {showModeloList &&
+              marcaSelecionada &&
+              !modeloSelecionado &&
+              !loadingModelos && (
+                <div className={styles.searchList}>
+                  {modelosFiltrados.length === 0 ? (
+                    <div className={styles.searchEmpty}>
+                      Nenhum modelo encontrado
+                    </div>
+                  ) : (
+                    modelosFiltrados.map((modelo) => (
+                      <button
+                        key={modelo.Value}
+                        className={styles.searchItem}
+                        onClick={() => selecionarModelo(modelo)}
+                        type="button"
+                      >
+                        {modelo.Label}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
           </div>
 
           {/* Etapa 3: Ano */}

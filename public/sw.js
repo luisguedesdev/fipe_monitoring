@@ -1,6 +1,5 @@
 // VERSÃO AUTO-GERADA: Atualize este timestamp a cada deploy
-// Ou use: Date.now() no build para gerar automaticamente
-const CACHE_VERSION = "20241203-1";
+const CACHE_VERSION = "20241203-3";
 const CACHE_NAME = `drive-price-x-${CACHE_VERSION}`;
 const STATIC_CACHE = `fipe-static-${CACHE_VERSION}`;
 const DATA_CACHE = `fipe-data-${CACHE_VERSION}`;
@@ -17,8 +16,7 @@ self.addEventListener("install", (event) => {
       return cache.addAll(STATIC_FILES);
     })
   );
-  // Força ativação imediata sem esperar
-  self.skipWaiting();
+  // NÃO usar skipWaiting() aqui para evitar loops de reload
 });
 
 // Ativação e limpeza de caches antigos
@@ -37,7 +35,7 @@ self.addEventListener("activate", (event) => {
       );
     })
   );
-  // Força todos os clientes a usarem o novo SW imediatamente
+  // Claim clients apenas na ativação
   self.clients.claim();
 });
 

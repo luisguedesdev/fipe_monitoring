@@ -276,11 +276,6 @@ export default function TodosVeiculos() {
             cadastrado
             {veiculos.length !== 1 ? "s" : ""}
           </p>
-          {isOfflineData && (
-            <span className={styles.offlineBadge}>
-              📱 Modo Offline • Sincronizado: {formatarDataHora(lastSync)}
-            </span>
-          )}
         </div>
 
         {/* Botões de ação */}
@@ -302,7 +297,7 @@ export default function TodosVeiculos() {
                 atualizando ? styles.btnAtualizando : ""
               }`}
               onClick={atualizarTodos}
-              disabled={atualizando || !isOnline}
+              disabled={atualizando}
             >
               {atualizando ? (
                 <>
@@ -446,11 +441,9 @@ export default function TodosVeiculos() {
                 Limpar filtros
               </button>
             ) : (
-              isOnline && (
-                <Link href="/" className={styles.btnPrimary}>
-                  Consultar veículo
-                </Link>
-              )
+              <Link href="/" className={styles.btnPrimary}>
+                Consultar veículo
+              </Link>
             )}
           </div>
         ) : (

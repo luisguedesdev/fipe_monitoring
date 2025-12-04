@@ -32,37 +32,45 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (email, senha) => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, senha }),
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!data.success) {
-      throw new Error(data.error);
+      if (!data.success) {
+        return { success: false, error: data.error || "Erro ao fazer login" };
+      }
+
+      setUser(data.user);
+      return { success: true, user: data.user };
+    } catch (error) {
+      return { success: false, error: "Erro ao conectar com o servidor" };
     }
-
-    setUser(data.user);
-    return data.user;
   };
 
   const register = async (nome, email, senha) => {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, email, senha }),
-    });
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, email, senha }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!data.success) {
-      throw new Error(data.error);
+      if (!data.success) {
+        return { success: false, error: data.error || "Erro ao criar conta" };
+      }
+
+      setUser(data.user);
+      return { success: true, user: data.user };
+    } catch (error) {
+      return { success: false, error: "Erro ao conectar com o servidor" };
     }
-
-    setUser(data.user);
-    return data.user;
   };
 
   const logout = async () => {

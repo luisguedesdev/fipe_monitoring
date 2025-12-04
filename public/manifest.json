@@ -2,7 +2,7 @@
   "name": "Drive Price X",
   "short_name": "Drive Price X",
   "description": "Monitore preços de veículos da tabela FIPE",
-  "start_url": "/todos",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#e63946",

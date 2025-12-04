@@ -142,10 +142,10 @@ export default function AdminDashboard() {
                 </div>
               </Link>
 
-              <Link href="/conta" className={styles.actionCard}>
+              <Link href="/meus-veiculos" className={styles.actionCard}>
                 <div className={styles.actionIcon}>👤</div>
                 <div className={styles.actionInfo}>
-                  <h3>Minha Conta</h3>
+                  <h3>Meus Veículos</h3>
                   <p>Gerenciar veículos pessoais salvos</p>
                 </div>
               </Link>

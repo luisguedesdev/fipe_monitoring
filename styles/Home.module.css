@@ -107,6 +107,136 @@
   opacity: 0.7;
 }
 
+/* Search Input Styles */
+.searchInputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 16px;
+  padding-right: 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 16px;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #e63946;
+  box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.1);
+}
+
+.searchInput:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.searchInput::placeholder {
+  color: #999;
+}
+
+.clearButton {
+  position: absolute;
+  right: 12px;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+  background: #e63946;
+  color: white;
+}
+
+.searchList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile: lista menor para caber na tela */
+@media (max-width: 768px) {
+  .searchList {
+    max-height: 200px;
+    position: fixed;
+    left: 20px;
+    right: 20px;
+    top: auto;
+    bottom: auto;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+  }
+}
+
+.searchItem {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  font-size: 15px;
+  color: #333;
+  transition: background 0.2s ease;
+}
+
+.searchItem:hover {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8ea 100%);
+  color: #e63946;
+}
+
+.searchItem:last-child {
+  border-bottom: none;
+}
+
+.searchEmpty {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.searchMore {
+  padding: 12px 16px;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Make formGroup relative for dropdown positioning */
+.formGroup {
+  margin-bottom: 30px;
+  position: relative;
+}
+
 .monthOptions {
   display: flex;
   gap: 20px;
